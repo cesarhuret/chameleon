@@ -1,15 +1,15 @@
-#include "Pixy2.h"
 
-Pixy2 pixy;
+#include <Arduino.h>
+#include "src/Chameleon.h"
 
 bool stopped = false;
+
+Chameleon chameleon;
 
 void setup()
 {
   Serial.begin(115200);
-
-  pinMode(10, OUTPUT);
-  digitalWrite(10, HIGH);
+  chameleon.init();
 
   int8_t status = pixy.init();
 
@@ -25,41 +25,5 @@ void setup()
 
 void loop()
 {
-  if (Serial.available() > 0)
-  {
-    char input = Serial.read();
-
-    if (input == 'd')
-    {
-      Serial.println("Program stopped.");
-      stopped = true;
-    }
-  }
-
-  if (stopped)
-  {
-    return; 
-  }
-
-  pixy.ccc.getBlocks();
-
-  if (pixy.ccc.numBlocks)
-  {
-    Serial.print("Detected ");
-    Serial.println(pixy.ccc.numBlocks);
-
-    for (int i = 0; i < pixy.ccc.numBlocks; i++)
-    {
-      Serial.print("  block ");
-      Serial.print(i);
-      Serial.print(": ");
-      pixy.ccc.blocks[i].print();
-    }
-  }
-  else
-  {
-    Serial.println("No blocks detected");
-  }
-
-  delay(1000); 
+  chameleon.run();
 }
