@@ -3,7 +3,7 @@
 
 #include "Pixy2.h"
 
-class PixySensor
+class PixySensor : public IPixySensor
 {
 private:
     Pixy2 pixy;

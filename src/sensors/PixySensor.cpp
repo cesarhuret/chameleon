@@ -1,5 +1,4 @@
 #include "PixySensor.h"
-#include "Pixy2.h"
 
 int8_t PixySensor::init()
 {

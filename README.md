@@ -3,7 +3,9 @@
 ## Index
 
 1. [Getting Started](#1-getting-started)
-2. Testing
+2. [Architecture](#2-architecture)
+3. [Contributing](#3-contributing)
+4. [Testing](#4-testing)
 
 ## 1. Getting Started
 
@@ -14,6 +16,10 @@
 4. When cloning the repository, change the path it is cloned to to the Arduino folder which can be found in `~/Documents/Arduino`
 5. Open the Arduino IDE and click `File` and then `Open`. Select the folder you just cloned (in `Documents/Arduino/chameleon`)
 
-## 2. Testing
+## 2. Architecture
 
-Testing can be done with PlatformIO
+## 3. Contributing
+
+## 4. Testing
+
+Testing can be done with PlatformIO and more can be found in the [`Testing README`](/test/README).
