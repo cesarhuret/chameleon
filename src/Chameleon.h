@@ -1,6 +1,7 @@
 #ifndef CHAMELEON_H
 #define CHAMELEON_H
 
+#include "sensors/IPixySensor.h"
 #include "controllers/PixyController.h"
 
 
@@ -15,7 +16,7 @@ public:
     // because when we get our target block we want its latest information - as we get closer the position will update
     // then we just use the index to fetch the latest information from the updated list
 
-    void init();
+    void init(IPixySensor* pixy);
     void run();
     
 };

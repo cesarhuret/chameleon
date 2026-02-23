@@ -23,6 +23,8 @@ public:
     Block findTargetBall();
 
     Block getCurrentTargetBall();
+
+    int8_t resetCurrentTargetBall();
 };
 
 #endif

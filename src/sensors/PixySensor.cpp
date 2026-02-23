@@ -6,21 +6,18 @@ int8_t PixySensor::init()
     return status;
 }
 
-std::vector<Block> PixySensor::getBlocks()
+const Block *PixySensor::getBlocks(uint8_t &count)
 {
     int8_t status = pixy.ccc.getBlocks();
 
     if (status < 0)
     {
-        return std::vector<Block>();
+        count = 0;
+        return nullptr;
     }
 
-    std::vector<Block> blocks;
-    for (int i = 0; i < pixy.ccc.numBlocks; i++)
-    {
-        blocks.push_back(pixy.ccc.blocks[i]);
-    }
-    return blocks;
+    count = pixy.ccc.numBlocks;
+    return pixy.ccc.blocks;
 }
 
 Block PixySensor::getBlock(int index)
