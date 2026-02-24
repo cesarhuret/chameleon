@@ -49,15 +49,15 @@ jobs:
         echo "$SUMMARY" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
 
-    - name: Post coverage to PR
-      if: github.event_name == 'pull_request'
-      uses: peter-evans/create-or-update-comment@v4
-      with:
-        token: ${{ secrets.PAT_TOKEN }}
-        issue-number: ${{ github.event.pull_request.number }}
-        body: |
-          ## Unit Test Coverage
-          ${{ env.COVERAGE_SUMMARY }}
+    # - name: Post coverage to PR
+    #   if: github.event_name == 'pull_request'
+    #   uses: peter-evans/create-or-update-comment@v4
+    #   with:
+    #     token: ${{ secrets.PAT_TOKEN }}
+    #     issue-number: ${{ github.event.pull_request.number }}
+    #     body: |
+    #       ## Unit Test Coverage
+    #       ${{ env.COVERAGE_SUMMARY }}
     
     - name: Build for Arduino Uno
       run: pio run -e uno
