@@ -1,8 +1,9 @@
 #ifndef CHAMELEON_H
 #define CHAMELEON_H
 
-#include "sensors/IPixySensor.h"
+#include "sensors/interfaces/IPixySensor.h"
 #include "controllers/PixyController.h"
+
 
 
 class Chameleon {

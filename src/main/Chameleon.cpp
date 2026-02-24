@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include "Chameleon.h"
 
 void Chameleon::init(IPixySensor *pixy)
@@ -22,10 +24,10 @@ void Chameleon::run()
     // ============================================
 
     // Get our current target
-    Block target = pixyController.getCurrentTargetBall();
+    Types::Block target = pixyController.getCurrentTargetBall();
 
     // If we don't have a target, find one
-    if (target.m_signature == 0)
+    if (target.signature == 0)
     {
         Serial.println("No target currently tracked.");
         target = pixyController.findTargetBall();

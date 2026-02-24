@@ -1,5 +1,5 @@
 #include "PixyController.h"
-#include "../constants/Pixy.h"
+#include "constants/Pixy.h"
 
 int8_t PixyController::init(IPixySensor *pixy, int8_t targetSignature, int16_t thresholdHeight, int16_t thresholdWidth, int16_t thresholdX, int16_t thresholdY)
 {
@@ -36,7 +36,7 @@ Block PixyController::findTargetBall()
         {
             // Return the first block that matches the criteria
             // We need to change this to return the block that is closest to the robot.
-            this->currentTargetBallIndex = block.m_index; // Store the index of the current target ball
+            this->currentTargetBallIndex = block.index; // Store the index of the current target ball
             return block;
         }
     }
@@ -45,15 +45,15 @@ Block PixyController::findTargetBall()
 
 bool PixyController::isBall(Block block)
 {
-    if (block.m_signature != targetSignature)
+    if (block.signature != targetSignature)
     {
         return false;
     }
-    if (block.m_height < thresholdHeight || block.m_width < thresholdWidth)
+    if (block.height < thresholdHeight || block.width < thresholdWidth)
     {
         return false;
     }
-    if (abs(block.m_x - PIXY_CAM_WIDTH / 2) > thresholdX || abs(block.m_y - PIXY_CAM_HEIGHT / 2) > thresholdY)
+    if ((block.x - PIXY_CAM_WIDTH / 2) > thresholdX || (block.y - PIXY_CAM_HEIGHT / 2) > thresholdY)
     {
         return false;
     }

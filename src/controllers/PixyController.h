@@ -1,7 +1,10 @@
 #ifndef PIXYCONTROLLER_H
 #define PIXYCONTROLLER_H
 
-#include "../sensors/IPixySensor.h"
+#include "sensors/interfaces/IPixySensor.h"
+#include "types/Block.h"
+
+using namespace Types;
 
 class PixyController
 {

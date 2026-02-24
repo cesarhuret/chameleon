@@ -21,6 +21,7 @@
 */
 
 #include <SPI.h>
+
 #include "Pixy2.h"
 
 // Create Pixy2 object

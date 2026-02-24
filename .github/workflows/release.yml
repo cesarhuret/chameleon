@@ -1,0 +1,57 @@
+name: Release Build
+
+# Trigger only when commits land on main (i.e., merges)
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Checkout the repo
+      - uses: actions/checkout@v3
+
+      # 2. Set up Python for PlatformIO
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      # 3. Install PlatformIO
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+
+      # 4. Build for all environments (native tests + Arduino boards)
+      - name: Run unit tests (native)
+        run: pio test -e native
+
+      - name: Build Arduino Uno firmware
+        run: pio run -e uno
+
+      # 5. Upload build artifacts
+      - name: Upload firmware as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: arduino-firmware
+          # Path to the compiled .hex file
+          path: .pio/build/uno/firmware.hex
+
+      # 6. Create a GitHub release and attach the firmware
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.run_number }} # auto-incrementing version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload firmware to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: .pio/build/uno/firmware.hex
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
