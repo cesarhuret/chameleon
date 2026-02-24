@@ -34,7 +34,7 @@ jobs:
 
       # 5. Upload build artifacts
       - name: Upload firmware as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: arduino-firmware
           # Path to the compiled .hex file
