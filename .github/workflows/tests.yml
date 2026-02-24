@@ -12,7 +12,7 @@ jobs:
     
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -29,20 +29,25 @@ jobs:
 
     - name: Generate coverage info
       run: |
-        sudo apt-get update
         sudo apt-get install -y lcov
         mkdir -p coverage
         lcov --directory .pio/build/native/ --capture --output-file coverage/coverage.info
         lcov --remove coverage/coverage.info '/usr/*' --output-file coverage/coverage.info
         genhtml coverage/coverage.info --output-directory coverage/html
-        
-        # Extract summary
-        COVERAGE_SUMMARY=$(lcov --summary coverage/coverage.info | awk '
+
+        # Extract summary as a proper Markdown table
+        SUMMARY=$(lcov --summary coverage/coverage.info | awk '
           /lines:/ {lines=$2} 
           /functions:/ {functions=$2} 
           /branches:/ {branches=$2} 
-          END {printf "| Coverage Type | Percent |\n|---|---|\n| Lines | %s |\n| Functions | %s |\n| Branches | %s |\n", lines, functions, branches}')
-        echo "COVERAGE_SUMMARY=$COVERAGE_SUMMARY" >> $GITHUB_ENV
+          END {
+            printf "| Coverage Type | Percent |\n|--------------|--------|\n| Lines        | %s |\n| Functions    | %s |\n| Branches     | %s |\n", lines, functions, branches
+          }')
+
+        # Use EOF syntax to safely store multi-line value
+        echo "COVERAGE_SUMMARY<<EOF" >> $GITHUB_ENV
+        echo "$SUMMARY" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
 
     - name: Post coverage to PR
       if: github.event_name == 'pull_request'
