@@ -1,0 +1,64 @@
+name: Unit Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  unit_tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install PlatformIO
+      run: |
+        python -m pip install --upgrade pip
+        pip install platformio
+    
+    - name: Run unit tests (native environment)
+      run: pio test -e native
+
+    - name: Generate coverage info
+      run: |
+        sudo apt-get install -y lcov
+        mkdir -p coverage
+        lcov --directory .pio/build/native/ --capture --output-file coverage/coverage.info
+        lcov --remove coverage/coverage.info '/usr/*' --output-file coverage/coverage.info
+        genhtml coverage/coverage.info --output-directory coverage/html
+
+        # Extract summary as a proper Markdown table
+        SUMMARY=$(lcov --summary coverage/coverage.info | awk '
+          /lines:/ {lines=$2} 
+          /functions:/ {functions=$2} 
+          /branches:/ {branches=$2} 
+          END {
+            printf "| Coverage Type | Percent |\n|--------------|--------|\n| Lines        | %s |\n| Functions    | %s |\n| Branches     | %s |\n", lines, functions, branches
+          }')
+
+        # Use EOF syntax to safely store multi-line value
+        echo "COVERAGE_SUMMARY<<EOF" >> $GITHUB_ENV
+        echo "$SUMMARY" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+
+    # - name: Post coverage to PR
+    #   if: github.event_name == 'pull_request'
+    #   uses: peter-evans/create-or-update-comment@v4
+    #   with:
+    #     token: ${{ secrets.PAT_TOKEN }}
+    #     issue-number: ${{ github.event.pull_request.number }}
+    #     body: |
+    #       ## Unit Test Coverage
+    #       ${{ env.COVERAGE_SUMMARY }}
+    
+    - name: Build for Arduino Uno
+      run: pio run -e uno
