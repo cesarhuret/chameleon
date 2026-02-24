@@ -29,6 +29,8 @@ jobs:
 
     - name: Generate coverage info
       run: |
+        sudo apt-get update
+        sudo apt-get install -y lcov
         mkdir -p coverage
         lcov --directory .pio/build/native/ --capture --output-file coverage/coverage.info
         lcov --remove coverage/coverage.info '/usr/*' --output-file coverage/coverage.info
@@ -54,10 +56,3 @@ jobs:
     
     - name: Build for Arduino Uno
       run: pio run -e uno
-    
-    - name: Upload test results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-results
-        path: .pio/build/native/test/
