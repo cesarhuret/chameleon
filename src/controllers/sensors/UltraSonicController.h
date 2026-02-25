@@ -10,11 +10,16 @@ class UltraSonicController
 {
 
 private:
-    IUltraSonicSensor* ultraSonic;
+    IUltraSonicSensor *ultraSonic;
 
 public:
-    int8_t init(IUltraSonicSensor* ultraSonic);
+    int8_t init(IUltraSonicSensor *ultraSonic);
 
+    // Perform a full measurement and return distance in cm
+    uint16_t readDistanceCm();
+
+    // Check if an object is within a certain distance threshold in cm
+    bool isThereObjectWithin(uint16_t thresholdCm);
 };
 
 #endif

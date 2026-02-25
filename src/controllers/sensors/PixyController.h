@@ -27,6 +27,8 @@ public:
 
     Block getCurrentTargetBall() const;
 
+    bool isBlockCentered(Block block) const;
+
     int8_t resetCurrentTargetBall();
 };
 

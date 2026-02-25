@@ -3,16 +3,15 @@
 
 #include <stdint.h>
 
-class IUltraSonicSensor {
+class IUltraSonicSensor
+{
 public:
     virtual ~IUltraSonicSensor() = default;
 
     virtual int8_t init() = 0;
 
-    // Perform full measurement and return distance in cm
-    virtual uint16_t readDistanceCm() = 0;
-
-    virtual bool isObjectWithin(uint16_t thresholdCm) = 0;
+    virtual void writeTrigger() = 0;
+    virtual uint32_t readEchoTimeUs() = 0;
 };
 
 #endif

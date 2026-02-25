@@ -1,6 +1,6 @@
 #include "UltraSonicController.h"
 
-int8_t UltraSonicController::init(IUltraSonicSensor* ultraSonic)
+int8_t UltraSonicController::init(IUltraSonicSensor *ultraSonic)
 {
     this->ultraSonic = ultraSonic;
 
@@ -16,4 +16,35 @@ int8_t UltraSonicController::init(IUltraSonicSensor* ultraSonic)
         return status;
     }
     return 0;
+}
+
+uint16_t UltraSonicController::readDistanceCm()
+{
+    //! NOTE: occurs over multiple frames, NEED TO CHANGE LOGIC TO OCCUR OVER MULTIPLE FRAMES
+    // Need to change writeTrigger to separate functions
+    ultraSonic->writeTrigger();
+
+    uint32_t duration = ultraSonic->readEchoTimeUs();
+
+    if (duration == 0)
+    {
+        // No echo received (out of range)
+        return 0;
+    }
+
+    // Convert microseconds to centimeters
+    // distance_cm = duration / 58
+    return static_cast<uint16_t>(duration / 58);
+}
+
+bool UltraSonicController::isThereObjectWithin(uint16_t thresholdCm)
+{
+    uint16_t distance = readDistanceCm();
+
+    if (distance == 0)
+    {
+        return false; // No object detected
+    }
+
+    return distance <= thresholdCm;
 }

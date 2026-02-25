@@ -8,7 +8,8 @@
 #include "sensors/interfaces/IPixySensor.h"
 
 // Create namespace alias for Pixy2 library types
-namespace Pixy {
+namespace Pixy
+{
     using Block = ::Block;
 }
 
@@ -18,7 +19,7 @@ class PixySensor : public IPixySensor
 {
 private:
     Pixy2 pixy;
-    Types::Block m_blocks[PIXY_MAX_BLOCKS];  // Internal buffer for converted blocks
+    Types::Block m_blocks[PIXY_MAX_BLOCKS]; // Internal buffer for converted blocks
 
 public:
     int8_t init() override;

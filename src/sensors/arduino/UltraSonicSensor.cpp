@@ -32,32 +32,3 @@ uint32_t UltraSonicSensor::readEchoTimeUs()
     // Timeout at 30ms (~5m max distance)
     return pulseIn(_echoPin, HIGH, 30000);
 }
-
-uint16_t UltraSonicSensor::readDistanceCm()
-{
-    writeTrigger();
-
-    uint32_t duration = readEchoTimeUs();
-
-    if (duration == 0)
-    {
-        // No echo received (out of range)
-        return 0;
-    }
-
-    // Convert microseconds to centimeters
-    // distance_cm = duration / 58
-    return static_cast<uint16_t>(duration / 58);
-}
-
-bool UltraSonicSensor::isObjectWithin(uint16_t thresholdCm)
-{
-    uint16_t distance = readDistanceCm();
-
-    if (distance == 0)
-    {
-        return false; // No object detected
-    }
-
-    return distance <= thresholdCm;
-}

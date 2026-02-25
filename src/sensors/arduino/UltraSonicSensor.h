@@ -12,13 +12,11 @@ public:
     UltraSonicSensor(uint8_t trigPin, uint8_t echoPin);
 
     int8_t init() override;
-    uint16_t readDistanceCm() override;
-    bool isObjectWithin(uint16_t thresholdCm) override;
 
-private:
     void writeTrigger();
     uint32_t readEchoTimeUs();
 
+private:
     uint8_t _trigPin;
     uint8_t _echoPin;
 };

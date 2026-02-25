@@ -12,7 +12,7 @@ private:
 
 public:
     MockPixySensor();
-    
+
     // IPixySensor implementation
     int8_t init() override;
     const Types::Block *getBlocks(uint8_t &count) override;
@@ -25,10 +25,10 @@ public:
     void useSampleData_BallAtEdge();
     void useSampleData_LargeBall();
     void useSampleData_SmallBall();
-    
+
     // Manual data control
-    void setBlocks(const std::vector<Types::Block>& blocks);
-    void addBlock(const Types::Block& block);
+    void setBlocks(const std::vector<Types::Block> &blocks);
+    void addBlock(const Types::Block &block);
     void clearBlocks();
     void setInitFails(bool shouldFail);
 };

@@ -68,5 +68,17 @@ Block PixyController::getCurrentTargetBall() const
 int8_t PixyController::resetCurrentTargetBall()
 {
     this->currentTargetBallIndex = -1; // Reset to an invalid index
-    return 0; // Return success
+    return 0;                          // Return success
+}
+
+bool PixyController::isBlockCentered(Block block) const
+{
+    int16_t centerX = PIXY_CAM_WIDTH / 2;
+    int16_t centerY = PIXY_CAM_HEIGHT / 2;
+
+    auto dx = block.x - centerX;
+    auto dy = block.y - centerY;
+
+    return (dx <= thresholdX && dx >= -thresholdX) &&
+           (dy <= thresholdY && dy >= -thresholdY);
 }
