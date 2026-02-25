@@ -5,6 +5,8 @@
 #include "sensors/interfaces/IUltraSonicSensor.h"
 #include "controllers/sensors/PixyController.h"
 #include "controllers/sensors/UltraSonicController.h"
+#include "controllers/actuators/MotorController.h"
+#include "controllers/actuators/ServoController.h"
 
 enum class State {
     SEARCHING_FOR_BALL,
@@ -25,6 +27,8 @@ private:
 
     PixyController pixyController;
     UltraSonicController ultraSonicController;
+    MotorController motorController;
+    ServoController servoController;
 public:
 
     // should we store a list of all the blocks that were scanned in that frame?
