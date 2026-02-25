@@ -1,6 +1,6 @@
 #include <unity.h>
 #include "sensors/mocks/MockPixySensor.h"
-#include "controllers/PixyController.h"
+#include "controllers/sensors/PixyController.h"
 #include "constants/Pixy.h"
 
 // Test fixture

@@ -60,7 +60,7 @@ bool PixyController::isBall(Block block)
     return true;
 }
 
-Block PixyController::getCurrentTargetBall()
+Block PixyController::getCurrentTargetBall() const
 {
     return pixy->getBlock(currentTargetBallIndex);
 }

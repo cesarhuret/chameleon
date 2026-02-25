@@ -25,7 +25,7 @@ public:
 
     Block findTargetBall();
 
-    Block getCurrentTargetBall();
+    Block getCurrentTargetBall() const;
 
     int8_t resetCurrentTargetBall();
 };
