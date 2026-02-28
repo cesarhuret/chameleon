@@ -11,17 +11,17 @@ int8_t MockPixySensor::init()
     return 0;
 }
 
-const Types::Block *MockPixySensor::getBlocks(uint8_t &count)
+const Types::DetectedBlock *MockPixySensor::getBlocks(uint8_t &count)
 {
     count = m_blocks.size();
     return m_blocks.empty() ? nullptr : m_blocks.data();
 }
 
-Types::Block MockPixySensor::getBlock(int index)
+Types::DetectedBlock MockPixySensor::getBlock(uint8_t index)
 {
-    if (index < 0 || index >= static_cast<int>(m_blocks.size()))
+    if (index >= m_blocks.size())
     {
-        return Types::Block{}; // Return empty block
+        return Types::DetectedBlock{}; // Return empty block
     }
     return m_blocks[index];
 }
@@ -123,12 +123,12 @@ void MockPixySensor::useSampleData_SmallBall()
               .angle = 0});
 }
 
-void MockPixySensor::setBlocks(const std::vector<Types::Block> &blocks)
+void MockPixySensor::setBlocks(const std::vector<Types::DetectedBlock> &blocks)
 {
     m_blocks = blocks;
 }
 
-void MockPixySensor::addBlock(const Types::Block &block)
+void MockPixySensor::addBlock(const Types::DetectedBlock &block)
 {
     m_blocks.push_back(block);
 }

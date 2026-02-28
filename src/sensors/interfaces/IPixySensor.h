@@ -12,9 +12,9 @@ public:
     virtual int8_t init() = 0;
 
     // Return pointer to internal blocks buffer and set count
-    virtual const Types::Block* getBlocks(uint8_t& count) = 0;
+    virtual const Types::DetectedBlock* getBlocks(uint8_t& count) = 0;
 
-    virtual Types::Block getBlock(int index) = 0;
+    virtual Types::DetectedBlock getBlock(uint8_t index) = 0;
 };
 
 #endif

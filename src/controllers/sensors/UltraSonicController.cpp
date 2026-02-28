@@ -24,7 +24,7 @@ uint16_t UltraSonicController::readDistanceCm()
     // Need to change writeTrigger to separate functions
     ultraSonic->writeTrigger();
 
-    uint32_t duration = ultraSonic->readEchoTimeUs();
+    float duration = ultraSonic->readEchoTimeUs();
 
     if (duration == 0)
     {
@@ -34,7 +34,7 @@ uint16_t UltraSonicController::readDistanceCm()
 
     // Convert microseconds to centimeters
     // distance_cm = duration / 58
-    return static_cast<uint16_t>(duration / 58);
+    return static_cast<uint16_t>((duration * .0343) / 2);
 }
 
 bool UltraSonicController::isThereObjectWithin(uint16_t thresholdCm)

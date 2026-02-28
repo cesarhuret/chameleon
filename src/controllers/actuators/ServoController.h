@@ -10,6 +10,7 @@ public:
 
     bool isOpen();
     bool isClosed();
+    bool isMoving();
 
     void open();
     void close();

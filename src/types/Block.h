@@ -5,7 +5,7 @@
 
 namespace Types
 {
-  struct Block
+  struct DetectedBlock
   {
     uint16_t x;        // X position
     uint16_t y;        // Y position

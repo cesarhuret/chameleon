@@ -1,7 +1,7 @@
 #ifndef PIXY_CONSTANTS_H
 #define PIXY_CONSTANTS_H
 
-#define PIXY_CAM_WIDTH 320
-#define PIXY_CAM_HEIGHT 240
+#define PIXY_CAM_WIDTH 316
+#define PIXY_CAM_HEIGHT 208
 
 #endif

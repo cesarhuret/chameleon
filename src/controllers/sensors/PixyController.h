@@ -13,21 +13,23 @@ private:
     IPixySensor* pixy;
     int16_t currentTargetBallIndex;
     int8_t targetSignature;
-    int16_t thresholdHeight;
-    int16_t thresholdWidth;
+    int16_t min_Height;
+    int16_t max_Height;
+    int16_t min_Width;
+    int16_t max_Width;
     int16_t thresholdX;
     int16_t thresholdY;
 
-    bool isBall(Block block);
+    bool isBall(DetectedBlock block);
 
 public:
-    int8_t init(IPixySensor* pixy, int8_t targetSignature, int16_t thresholdHeight, int16_t thresholdWidth, int16_t thresholdX, int16_t thresholdY);
+    int8_t init(IPixySensor* pixy, int8_t targetSignature, int16_t min_Height, int16_t max_Height, int16_t min_Width, int16_t max_Width, int16_t thresholdX, int16_t thresholdY);
 
-    Block findTargetBall();
+    DetectedBlock findTargetBall();
 
-    Block getCurrentTargetBall() const;
+    DetectedBlock getCurrentTargetBall() const;
 
-    bool isBlockCentered(Block block) const;
+    bool isBlockCentered(DetectedBlock block) const;
 
     int8_t resetCurrentTargetBall();
 };

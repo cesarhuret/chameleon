@@ -7,28 +7,28 @@ UltraSonicSensor::UltraSonicSensor(uint8_t trigPin, uint8_t echoPin)
 
 int8_t UltraSonicSensor::init()
 {
-    pinMode(_trigPin, OUTPUT);
-    pinMode(_echoPin, INPUT);
+    pinMode(3, OUTPUT);
+    pinMode(2, INPUT);
 
-    digitalWrite(_trigPin, LOW); // Ensure trigger starts LOW
+    // digitalWrite(_trigPin, LOW); // Ensure trigger starts LOW
     return 0;                    // Success
 }
 
 void UltraSonicSensor::writeTrigger()
 {
     // Ensure clean LOW pulse
-    digitalWrite(_trigPin, LOW);
+    digitalWrite(3, LOW);
     delayMicroseconds(2); // DO NOT DO THIS IN PROD - USE A TIMER - THIS IS BLOCKING!
 
     // 10µs HIGH pulse to trigger measurement
-    digitalWrite(_trigPin, HIGH);
+    digitalWrite(3, HIGH);
     delayMicroseconds(10); // DO NOT DO THIS IN PROD - USE A TIMER - THIS IS BLOCKING!
 
-    digitalWrite(_trigPin, LOW);
+    digitalWrite(3, LOW);
 }
 
-uint32_t UltraSonicSensor::readEchoTimeUs()
+float UltraSonicSensor::readEchoTimeUs()
 {
     // Timeout at 30ms (~5m max distance)
-    return pulseIn(_echoPin, HIGH, 30000);
+    return pulseIn(2, HIGH);
 }

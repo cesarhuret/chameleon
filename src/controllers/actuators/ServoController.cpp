@@ -11,6 +11,12 @@ bool ServoController::isClosed()
     return true;
 }
 
+bool ServoController::isMoving()
+{
+    // TODO: IMPLEMENT
+    return true;
+}
+
 void ServoController::open()
 {
     // TODO: IMPLEMENT

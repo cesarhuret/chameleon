@@ -11,7 +11,7 @@ public:
     virtual int8_t init() = 0;
 
     virtual void writeTrigger() = 0;
-    virtual uint32_t readEchoTimeUs() = 0;
+    virtual float readEchoTimeUs() = 0;
 };
 
 #endif

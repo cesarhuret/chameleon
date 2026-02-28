@@ -14,7 +14,7 @@ public:
     int8_t init() override;
 
     void writeTrigger();
-    uint32_t readEchoTimeUs();
+    float readEchoTimeUs();
 
 private:
     uint8_t _trigPin;

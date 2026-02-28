@@ -1,23 +1,14 @@
 #ifndef CHAMELEON_H
 #define CHAMELEON_H
 
+#include "helpers/interfaces/ILogger.h"
 #include "sensors/interfaces/IPixySensor.h"
 #include "sensors/interfaces/IUltraSonicSensor.h"
 #include "controllers/sensors/PixyController.h"
 #include "controllers/sensors/UltraSonicController.h"
 #include "controllers/actuators/MotorController.h"
 #include "controllers/actuators/ServoController.h"
-
-enum class State {
-    SEARCHING_FOR_BALL,
-    CENTERING_TARGET,
-    MOVING_TO_BALL,
-    GRAB_CLAW,
-    RELEASE_CLAW,
-    ROTATE_TO_BASE,
-    ROTATE_TO_CENTER,
-    MOVING_TO_BASE
-};
+#include "types/State.h"
 
 class Chameleon {
 
@@ -25,6 +16,7 @@ private:
     
     State currentState;
 
+    ILogger* logger;
     PixyController pixyController;
     UltraSonicController ultraSonicController;
     MotorController motorController;
@@ -35,7 +27,7 @@ public:
     // because when we get our target block we want its latest information - as we get closer the position will update
     // then we just use the index to fetch the latest information from the updated list
 
-    void init(IPixySensor* pixy, IUltraSonicSensor* ultraSonic);
+    void init(ILogger* logger, IPixySensor* pixy, IUltraSonicSensor* ultraSonic);
     void run();
     
 };

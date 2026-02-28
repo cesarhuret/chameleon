@@ -1,14 +1,17 @@
 #include "PixyController.h"
 #include "constants/Pixy.h"
 
-int8_t PixyController::init(IPixySensor *pixy, int8_t targetSignature, int16_t thresholdHeight, int16_t thresholdWidth, int16_t thresholdX, int16_t thresholdY)
+int8_t PixyController::init(IPixySensor *pixy, int8_t targetSignature, int16_t min_Height, int16_t max_Height, int16_t min_Width, int16_t max_Width, int16_t thresholdX, int16_t thresholdY)
 {
     this->pixy = pixy;
     this->targetSignature = targetSignature;
-    this->thresholdHeight = thresholdHeight;
-    this->thresholdWidth = thresholdWidth;
+    this->min_Height = min_Height;
+    this->max_Height = max_Height;
+    this->min_Width = min_Width;
+    this->max_Width = max_Width;
     this->thresholdX = thresholdX;
     this->thresholdY = thresholdY;
+    this->currentTargetBallIndex = -1; // Initialize to an invalid index
 
     if (this->pixy == nullptr)
     {
@@ -24,14 +27,14 @@ int8_t PixyController::init(IPixySensor *pixy, int8_t targetSignature, int16_t t
     return 0;
 }
 
-Block PixyController::findTargetBall()
+DetectedBlock PixyController::findTargetBall()
 {
     uint8_t count = 0;
-    const Block *blocks = pixy->getBlocks(count);
+    const DetectedBlock *blocks = pixy->getBlocks(count);
 
     for (uint8_t i = 0; i < count; i++)
     {
-        const Block &block = blocks[i];
+        const DetectedBlock &block = blocks[i];
         if (isBall(block))
         {
             // Return the first block that matches the criteria
@@ -40,27 +43,24 @@ Block PixyController::findTargetBall()
             return block;
         }
     }
-    return Block(); // Return an empty block if no target ball is found
+    return DetectedBlock(); // Return an empty block if no target ball is found
 }
 
-bool PixyController::isBall(Block block)
+bool PixyController::isBall(DetectedBlock block)
 {
     if (block.signature != targetSignature)
     {
         return false;
     }
-    if (block.height < thresholdHeight || block.width < thresholdWidth)
+    if (block.height < min_Height || block.height > max_Height || block.width < min_Width || block.width > max_Width)
     {
         return false;
     }
-    if ((block.x - PIXY_CAM_WIDTH / 2) > thresholdX || (block.y - PIXY_CAM_HEIGHT / 2) > thresholdY)
-    {
-        return false;
-    }
+    
     return true;
 }
 
-Block PixyController::getCurrentTargetBall() const
+DetectedBlock PixyController::getCurrentTargetBall() const
 {
     return pixy->getBlock(currentTargetBallIndex);
 }
@@ -71,13 +71,13 @@ int8_t PixyController::resetCurrentTargetBall()
     return 0;                          // Return success
 }
 
-bool PixyController::isBlockCentered(Block block) const
+bool PixyController::isBlockCentered(DetectedBlock block) const
 {
     int16_t centerX = PIXY_CAM_WIDTH / 2;
     int16_t centerY = PIXY_CAM_HEIGHT / 2;
 
-    auto dx = block.x - centerX;
-    auto dy = block.y - centerY;
+    auto dx = (int16_t)block.x - centerX;
+    auto dy = (int16_t)block.y - centerY;
 
     return (dx <= thresholdX && dx >= -thresholdX) &&
            (dy <= thresholdY && dy >= -thresholdY);
