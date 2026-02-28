@@ -41,17 +41,11 @@ jobs:
           path: .pio/build/uno/firmware.hex
 
       # 6. Create a GitHub release and attach the firmware
-      - name: Create Release
-        id: create_release
+      - name: Create Release with firmware
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ github.run_number }} # auto-incrementing version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload firmware to release
-        uses: softprops/action-gh-release@v1
-        with:
+          tag_name: v${{ github.run_number }}
           files: .pio/build/uno/firmware.hex
+          allow_updates: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
