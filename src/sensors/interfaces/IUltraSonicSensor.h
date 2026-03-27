@@ -8,7 +8,7 @@ class IUltraSonicSensor
 public:
     virtual ~IUltraSonicSensor() = default;
 
-    virtual int8_t init() = 0;
+    virtual uint8_t init() = 0;
 
     virtual void writeTrigger() = 0;
     virtual float readEchoTimeUs() = 0;

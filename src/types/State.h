@@ -3,7 +3,7 @@
 
 namespace Types
 {
-    enum class State
+    enum class State : uint8_t
     {
         SEARCHING_FOR_BALL,
         CENTERING_TARGET,

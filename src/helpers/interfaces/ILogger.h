@@ -1,9 +1,9 @@
 #ifndef ILOGGER_H
 #define ILOGGER_H
 
-#include <stdarg.h>
+#include <stdint.h>
 
-enum class LogLevel {
+enum class LogLevel : uint8_t {
     Debug = 0,
     Info,
     Error,
@@ -14,28 +14,12 @@ class ILogger {
 public:
     virtual ~ILogger() = default;
 
-    virtual void log(LogLevel level, const char* format, va_list args) = 0;
-
-    void debug(const char* format, ...) {
-        va_list args;
-        va_start(args, format);
-        log(LogLevel::Debug, format, args);
-        va_end(args);
+    template <typename T>
+    void log(LogLevel level, const T& data, uint8_t type) {
+        logImpl(level, &data, sizeof(T), type);
     }
 
-    void info(const char* format, ...) {
-        va_list args;
-        va_start(args, format);
-        log(LogLevel::Info, format, args);
-        va_end(args);
-    }
-
-    void error(const char* format, ...) {
-        va_list args;
-        va_start(args, format);
-        log(LogLevel::Error, format, args);
-        va_end(args);
-    }
+protected:
+    virtual void logImpl(LogLevel level, const void* data, size_t size, uint8_t type) = 0;
 };
-
 #endif

@@ -10,11 +10,14 @@
 #include "controllers/actuators/ServoController.h"
 #include "types/State.h"
 
+
+
 class Chameleon {
 
 private:
     
     State currentState;
+    State previousState;
 
     ILogger* logger;
     PixyController pixyController;
@@ -27,8 +30,8 @@ public:
     // because when we get our target block we want its latest information - as we get closer the position will update
     // then we just use the index to fetch the latest information from the updated list
 
-    void init(ILogger* logger, IPixySensor* pixy, IUltraSonicSensor* ultraSonic);
-    void run();
+    uint8_t init(ILogger* logger, IPixySensor* pixy, IUltraSonicSensor* ultraSonic);
+    uint8_t run();
     
 };
 

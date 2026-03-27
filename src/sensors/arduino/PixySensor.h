@@ -19,12 +19,12 @@ class PixySensor : public IPixySensor
 {
 private:
     Pixy2 pixy;
-    Types::DetectedBlock m_blocks[PIXY_MAX_BLOCKS]; // Internal buffer for converted blocks
+    Types::DetectedBlock m_blocks[PIXY_MAX_BLOCKS];
 
 public:
-    int8_t init() override;
-    const Types::DetectedBlock *getBlocks(uint8_t &count) override;
-    Types::DetectedBlock getBlock(uint8_t index) override;
+    uint8_t init() override;
+    Types::PixyArrayResult getBlocks() override;
+    Types::PixyResult getBlock(uint8_t index) override;
 };
 
 #endif
