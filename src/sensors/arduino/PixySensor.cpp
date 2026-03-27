@@ -1,25 +1,34 @@
 #include "PixySensor.h"
 
-int8_t PixySensor::init()
+// change to uint8_t error codes + 30
+uint8_t PixySensor::init()
 {
     int8_t status = pixy.init();
+
     return status;
 }
 
-const Types::DetectedBlock *PixySensor::getBlocks(uint8_t &count)
+Types::PixyArrayResult PixySensor::getBlocks()
 {
     int8_t status = pixy.ccc.getBlocks(true);
 
+    Serial.print("getBlocks status: ");
+    Serial.println(status);
+
+
     if (status < 0)
     {
-        count = 0;
-        return nullptr;
+        return Types::PixyArrayResult{uint8_t(status), nullptr, 0};
     }
 
-    count = pixy.ccc.numBlocks;
+    uint8_t count = pixy.ccc.numBlocks;
+    if (count > PIXY_MAX_BLOCKS)
+    {
+        count = PIXY_MAX_BLOCKS;
+    }
 
     // Convert Pixy2 blocks to our Block type
-    for (uint8_t i = 0; i < count && i < PIXY_MAX_BLOCKS; i++)
+    for (uint8_t i = 0; i < count; i++)
     {
         // Use Pixy2 namespace for Pixy2's Block struct
         const Pixy::Block &pixyBlock = pixy.ccc.blocks[i];
@@ -34,26 +43,31 @@ const Types::DetectedBlock *PixySensor::getBlocks(uint8_t &count)
         m_blocks[i].angle = pixyBlock.m_angle;
     }
 
-    return m_blocks;
+    Serial.print("Number of blocks detected: ");
+    Serial.println(count);
+
+    return Types::PixyArrayResult{uint8_t(status), m_blocks, count};
 }
 
-Types::DetectedBlock PixySensor::getBlock(uint8_t index)
+Types::PixyResult PixySensor::getBlock(uint8_t index)
 {
     int8_t status = pixy.ccc.getBlocks(true);
 
     if (status < 0)
     {
-        return Types::DetectedBlock();
+        return Types::PixyResult{uint8_t(status), Types::EMPTY_BLOCK};
     }
 
-    if (index < 0 || index > 255)
+    uint8_t count = pixy.ccc.numBlocks;
+    if (count > PIXY_MAX_BLOCKS)
     {
-        return Types::DetectedBlock(); // Return empty block
+        count = PIXY_MAX_BLOCKS;
     }
 
-    for (uint8_t i = 0; i < pixy.ccc.numBlocks; i++)
+    for (uint8_t i = 0; i < count; i++)
     {
-        if (pixy.ccc.blocks[i].m_index == index) {
+        if (pixy.ccc.blocks[i].m_index == index)
+        {
             const Pixy::Block &pixyBlock = pixy.ccc.blocks[i];
 
             Types::DetectedBlock b;
@@ -66,9 +80,9 @@ Types::DetectedBlock PixySensor::getBlock(uint8_t index)
             b.age = pixyBlock.m_age;
             b.index = pixyBlock.m_index;
             b.angle = pixyBlock.m_angle;
-            return b;
+            return Types::PixyResult{Codes::SUCCESS, b};
         }
     }
 
-    return Types::DetectedBlock(); // Return empty block if not found
-}
+    return Types::PixyResult{Codes::PIXY_BLOCK_NOT_FOUND, Types::EMPTY_BLOCK};
+};

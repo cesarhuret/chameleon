@@ -1,7 +1,8 @@
 #include "PixyController.h"
 #include "constants/Pixy.h"
+#include <Arduino.h>
 
-int8_t PixyController::init(IPixySensor *pixy, int8_t targetSignature, int16_t min_Height, int16_t max_Height, int16_t min_Width, int16_t max_Width, int16_t thresholdX, int16_t thresholdY)
+uint8_t PixyController::init(IPixySensor *pixy, int8_t targetSignature, int16_t min_Height, int16_t max_Height, int16_t min_Width, int16_t max_Width, int16_t thresholdX, int16_t thresholdY)
 {
     this->pixy = pixy;
     this->targetSignature = targetSignature;
@@ -15,35 +16,51 @@ int8_t PixyController::init(IPixySensor *pixy, int8_t targetSignature, int16_t m
 
     if (this->pixy == nullptr)
     {
-        return -1;
+        return PIXY_NOT_AVAILABLE;
     }
 
-    int8_t status = this->pixy->init();
-    if (status != 0)
+    uint8_t status = this->pixy->init();
+    if (status != SUCCESS)
     {
         // failed to initialize Pixy, return error code
         return status;
     }
-    return 0;
+    return SUCCESS;
 }
 
-DetectedBlock PixyController::findTargetBall()
+PixyResult PixyController::findTargetBall()
 {
-    uint8_t count = 0;
-    const DetectedBlock *blocks = pixy->getBlocks(count);
-
-    for (uint8_t i = 0; i < count; i++)
+    const PixyArrayResult result = pixy->getBlocks();
+    if (result.status < SUCCESS)
     {
-        const DetectedBlock &block = blocks[i];
+        return PixyResult{result.status, EMPTY_BLOCK}; // Return an empty block on error
+    }
+
+    for (uint8_t i = 0; i < result.count; i++)
+    {
+        const DetectedBlock &block = result.blocks[i];
+
+        Serial.print("Block Details - Signature: ");
+        Serial.print(block.signature);
+        Serial.print(", X: ");
+        Serial.print(block.x);
+        Serial.print(", Y: ");
+        Serial.print(block.y);
+        Serial.print(", Width: ");
+        Serial.print(block.width);
+        Serial.print(", Height: ");
+        Serial.println(block.height);
+
+
         if (isBall(block))
         {
             // Return the first block that matches the criteria
             // We need to change this to return the block that is closest to the robot.
             this->currentTargetBallIndex = block.index; // Store the index of the current target ball
-            return block;
+            return PixyResult{SUCCESS, block};
         }
     }
-    return DetectedBlock(); // Return an empty block if no target ball is found
+    return PixyResult{PIXY_TARGET_NOT_FOUND, EMPTY_BLOCK}; // Return an empty block if no target ball is found
 }
 
 bool PixyController::isBall(DetectedBlock block)
@@ -52,23 +69,23 @@ bool PixyController::isBall(DetectedBlock block)
     {
         return false;
     }
-    if (block.height < min_Height || block.height > max_Height || block.width < min_Width || block.width > max_Width)
-    {
-        return false;
-    }
+    // if (block.height < min_Height || block.height > max_Height || block.width < min_Width || block.width > max_Width)
+    // {
+    //     return false;
+    // }
     
     return true;
 }
 
-DetectedBlock PixyController::getCurrentTargetBall() const
+PixyResult PixyController::getCurrentTargetBall() const
 {
     return pixy->getBlock(currentTargetBallIndex);
 }
 
-int8_t PixyController::resetCurrentTargetBall()
+uint8_t PixyController::resetCurrentTargetBall()
 {
     this->currentTargetBallIndex = -1; // Reset to an invalid index
-    return 0;                          // Return success
+    return SUCCESS;               // Return success
 }
 
 bool PixyController::isBlockCentered(DetectedBlock block) const
@@ -77,8 +94,8 @@ bool PixyController::isBlockCentered(DetectedBlock block) const
     int16_t centerY = PIXY_CAM_HEIGHT / 2;
 
     auto dx = (int16_t)block.x - centerX;
-    auto dy = (int16_t)block.y - centerY;
+    // auto dy = (int16_t)block.y - centerY;
 
-    return (dx <= thresholdX && dx >= -thresholdX) &&
-           (dy <= thresholdY && dy >= -thresholdY);
+    return (dx <= thresholdX && dx >= -thresholdX);
+        //    && (dy <= thresholdY && dy >= -thresholdY);
 }

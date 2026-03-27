@@ -3,8 +3,10 @@
 
 #include "sensors/interfaces/IUltraSonicSensor.h"
 #include "types/Block.h"
+#include "types/Codes.h"
 
 using namespace Types;
+using namespace Codes;
 
 class UltraSonicController
 {
@@ -16,10 +18,10 @@ public:
     int8_t init(IUltraSonicSensor *ultraSonic);
 
     // Perform a full measurement and return distance in cm
-    uint16_t readDistanceCm();
+    UltraSonicResult readDistanceCm();
 
     // Check if an object is within a certain distance threshold in cm
-    bool isThereObjectWithin(uint16_t thresholdCm);
+    UltraSonicWithinResult isThereObjectWithin(uint16_t thresholdCm);
 };
 
 #endif
