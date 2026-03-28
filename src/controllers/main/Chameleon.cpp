@@ -71,8 +71,8 @@ uint8_t Chameleon::run()
         currentState = State::CENTERING_TARGET;
     }
 
-    logger->log(LogLevel::Debug, currentState, 2);
-    logger->log(LogLevel::Debug, packBlock(target), 3);
+    // logger->log(LogLevel::Debug, currentState, 2);
+    // logger->log(LogLevel::Debug, packBlock(target), 3);
 
     switch (currentState)
     {
@@ -87,7 +87,7 @@ uint8_t Chameleon::run()
         // If we don't have a target ball, find one
         if (target.signature == 0)
         {
-            Serial.println("Searching for ball...");
+            // Serial.println("Searching for ball...");
             result = pixyController.findTargetBall();
             target = result.block;
         }
@@ -113,7 +113,9 @@ uint8_t Chameleon::run()
         if (pixyController.isBlockCentered(target))
         {
             // logger->info("TARGET CENTERED -> MOVE TO BALL");
+            Serial.println("Target centered, moving towards ball...");
             motorController.stop();
+            delay(500); // Small delay to ensure motors have stopped before moving towards the ball
             previousState = currentState;
             currentState = State::MOVING_TO_BALL;
             break;
@@ -129,15 +131,23 @@ uint8_t Chameleon::run()
 
             int16_t dx = (int16_t)target.x - centerX;
 
+            Serial.print("Target position - X: ");
+            Serial.print(target.x);
+            Serial.print(" dX: ");
+            Serial.println(dx);
+
+
             // Control motors to adjust position based on target.x and target.y
             if (dx > 40)
             {
-                // target is to the left, rotate left
+                // target is to the right, rotate right
+                Serial.println("Rotating left to center target...");
                 motorController.rotate(false, 70); // Example parameters, adjust as needed
             }
             else if (dx < -40)
             {
-                // target is to the right, rotate right
+                // target is to the left, rotate right
+                Serial.println("Rotating right to center target...");
                 motorController.rotate(true, 70); // Example parameters, adjust as needed
             }
 
@@ -157,16 +167,16 @@ uint8_t Chameleon::run()
         // logger->debug("%s Target: x=%d y=%d width=%d height=%d signature=%d area=%d age=%d index=%d angle=%d | Distance=%d cm",
         //   Types::toString(currentState), target.x, target.y, target.width, target.height, target.signature, target.area, target.age, target.index, target.angle, distance);
 
-        Serial.print("Distance to object: ");
-        Serial.print(ultraSonicController.readDistanceCm().distanceCm);
-        Serial.println(" cm");
+        // Serial.print("Distance to object: ");
+        // Serial.print(ultraSonicController.readDistanceCm().distanceCm);
+        // Serial.println(" cm");
 
         // If we are within 3 cm of an object, transition to controlling the claw
         // reading distance takes multiple frames so we need timing to account for that
         if (ultraSonicController.isThereObjectWithin(4).isWithinThreshold)
         {
             // logger->info("OBJECT WITHIN THRESHOLD -> GRAB CLAW");
-            Serial.println("Object within threshold, preparing to grab...");
+            // Serial.println("Object within threshold, preparing to grab...");
 
             previousState = currentState;
             currentState = State::GRAB_CLAW;
@@ -178,8 +188,8 @@ uint8_t Chameleon::run()
         if (!motorController.isMoving())
         {
             // logger->info("STARTING MOVEMENT...");
-            // Control motors to move towards the target based on target.x and target.y
             motorController.move(true, 150); // Example parameters, adjust as needed
+            // Control motors to move towards the target based on target.x and target.y
         }
 
         break;
@@ -194,127 +204,15 @@ uint8_t Chameleon::run()
         servoController.close();
 
         delay(2000); // Wait for the claw to close, adjust as needed
+        
+        servoController.open(); // Open the claw to release the ball, we can change this later to only open when we are at the base
 
         previousState = currentState;
-        currentState = State::ROTATE_TO_BASE;
-
-        // if (!servoController.isClosed())
-        // {
-        //     // logger->info("CLOSING CLAW...");
-
-        //     // takes multiple frames to close the claw
-        //     servoController.close();
-        // } else {
-        //     // logger->info("BALL GRABBED -> ROTATE TO BASE");
-        //     currentState = State::ROTATE_TO_BASE;
-        // }
+        currentState = State::SEARCHING_FOR_BALL; // Start searching for the next ball
 
         break;
     }
 
-    case State::RELEASE_CLAW:
-    {
-        // ============================================
-        // Claw (Release)
-        // ============================================
-
-        // we are at the base, open the claw to release the ball
-
-        // takes multiple frames to open the claw
-        if (!servoController.isOpen())
-        {
-            servoController.open();
-        }
-        else
-        {
-            currentState = State::ROTATE_TO_CENTER; // Start searching for the next ball
-        }
-
-        servoController.open();
-
-        delay(2000); // Wait for the claw to close, adjust as needed
-
-        previousState = currentState;
-        currentState = State::ROTATE_TO_CENTER; // Start searching for the next ball
-
-        break;
-    }
-
-        // case State::ROTATE_TO_CENTER:
-        // {
-        //     // ============================================
-        //     // Rotate to Center
-        //     // ============================================
-
-        //     if (true) // pixyController.isCenterCentered()
-        //     {
-        //         motorController.stop();
-        //         currentState = State::SEARCHING_FOR_BALL;
-        //         break;
-        //     }
-
-        //     // If we are not rotating, start rotating to face the center
-        //     if (!motorController.isRotating())
-        //     {
-        //         Serial.println("Rotating to center position...");
-
-        //         // Control motors to rotate towards the center
-        //         motorController.rotate(0, 0);
-        //         break;
-        //     }
-        //     break;
-        // }
-
-        // case State::ROTATE_TO_BASE:
-        // {
-        //     // ============================================
-        //     // Rotate to Base
-        //     // ============================================
-
-        //     if (true) // pixyController.isBaseCentered()
-        //     {
-        //         motorController.stop();
-        //         currentState = State::MOVING_TO_BASE;
-        //         break;
-        //     }
-
-        //     // If we are not rotating, start rotating to face the base
-        //     if (!motorController.isRotating())
-        //     {
-        //         Serial.println("Rotating to base position...");
-
-        //         // Control motors to rotate towards the base
-        //         // motorController.rotate(motorController.BASE_X, motorController.BASE_Y);
-        //         break;
-        //     }
-        //     break;
-        // }
-
-        // case State::MOVING_TO_BASE:
-        // {
-        //     // ============================================
-        //     // Movement (To Base)
-        //     // ============================================
-
-        //     // PixyCam can detect lines, so we can use it to follow a line back to the base
-        //     // We would first have to rotate to find the line though
-
-        //     if (true) // if at base position
-        //     {
-        //         currentState = State::RELEASE_CLAW;
-        //         motorController.stop();
-        //         break;
-        //     }
-
-        //     if (!motorController.isMoving())
-        //     {
-        //         Serial.println("Moving towards base...");
-
-        //         // Control motors to move towards the base
-        //         motorController.move(0, 0); // Example parameters, adjust as needed
-        //     }
-        //     break;
-        // }
     }
 
     return SUCCESS;

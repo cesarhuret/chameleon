@@ -48,11 +48,6 @@ UltraSonicWithinResult UltraSonicController::isThereObjectWithin(uint16_t thresh
         return {ULTRASONIC_OUT_OF_RANGE, false}; // No object detected
     }
 
-    Serial.print("Checking if object is within ");
-    Serial.print(thresholdCm);
-    Serial.print(" cm: ");
-    Serial.print(result.distanceCm);
-    Serial.println(" cm");
 
     return {SUCCESS, result.distanceCm <= thresholdCm}; // Return whether object is within threshold
 }
