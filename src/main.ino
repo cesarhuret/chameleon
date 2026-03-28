@@ -71,7 +71,7 @@ void loop()
     // delay(2000);
 
     uint8_t status = chameleon.run();
-    logger.log(LogLevel::Info, status, 0);
+    // logger.log(LogLevel::Info, status, 0);
 
     if (status != Codes::SUCCESS)
     {

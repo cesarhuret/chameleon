@@ -40,18 +40,6 @@ PixyResult PixyController::findTargetBall()
     {
         const DetectedBlock &block = result.blocks[i];
 
-        Serial.print("Block Details - Signature: ");
-        Serial.print(block.signature);
-        Serial.print(", X: ");
-        Serial.print(block.x);
-        Serial.print(", Y: ");
-        Serial.print(block.y);
-        Serial.print(", Width: ");
-        Serial.print(block.width);
-        Serial.print(", Height: ");
-        Serial.println(block.height);
-
-
         if (isBall(block))
         {
             // Return the first block that matches the criteria

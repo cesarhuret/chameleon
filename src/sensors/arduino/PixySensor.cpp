@@ -12,10 +12,6 @@ Types::PixyArrayResult PixySensor::getBlocks()
 {
     int8_t status = pixy.ccc.getBlocks(true);
 
-    Serial.print("getBlocks status: ");
-    Serial.println(status);
-
-
     if (status < 0)
     {
         return Types::PixyArrayResult{uint8_t(status), nullptr, 0};
@@ -42,9 +38,6 @@ Types::PixyArrayResult PixySensor::getBlocks()
         m_blocks[i].index = pixyBlock.m_index;
         m_blocks[i].angle = pixyBlock.m_angle;
     }
-
-    Serial.print("Number of blocks detected: ");
-    Serial.println(count);
 
     return Types::PixyArrayResult{uint8_t(status), m_blocks, count};
 }

@@ -34,10 +34,10 @@ void MotorController::rotate(bool _direction, uint8_t _speed)
     _isRotating = true;
     _isMoving = false;
 
-    if(_direction) { // right
+    if(_direction) { // left
         digitalWrite(_dirPinR, LOW);
         digitalWrite(_dirPinL, HIGH);
-    } else { // left
+    } else { // right
         digitalWrite(_dirPinR, HIGH);
         digitalWrite(_dirPinL, LOW);
     }
