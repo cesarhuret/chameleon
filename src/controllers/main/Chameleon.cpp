@@ -7,6 +7,7 @@ uint8_t Chameleon::init(ILogger *logger, IPixySensor *pixy, IUltraSonicSensor *u
 {
     this->logger = logger;
     this->currentState = State::SEARCHING_FOR_BALL;
+    this->pixy = pixy;
 
     logger->log(LogLevel::Info, 123, 1);
     // Initialize the PixyController with appropriate parameters
@@ -53,7 +54,7 @@ uint8_t Chameleon::run()
             previousState = currentState;
             currentState = State::GRAB_CLAW;
         }
-        else
+        else if (currentState != State::CLAW_REPEATS && currentState != State::MOVE_TO_BARRIER && currentState != State::MOVE_BACK_TO_BASE)
         {
             // If we are not searching for a ball and there was an error getting the current target ball, we should probably go back to searching for a ball
             servoController.open();
@@ -63,12 +64,26 @@ uint8_t Chameleon::run()
     }
 
     // if ball shifts but stays on pixy fov, recenter to ball
-    if (currentState != State::GRAB_CLAW && currentState > State::CENTERING_TARGET && !pixyController.isBlockCentered(target))
+    if (currentState != State::GRAB_CLAW && currentState != State::CLAW_REPEATS && currentState != State::MOVE_TO_BARRIER && currentState != State::MOVE_BACK_TO_BASE && currentState > State::CENTERING_TARGET && !pixyController.isBlockCentered(target))
     {
         // If we are past the centering state and our target is no longer centered, we should probably go back to centering the target
         motorController.stop();
         previousState = currentState;
         currentState = State::CENTERING_TARGET;
+    }
+
+    if (currentState == State::MOVE_TO_BARRIER && target.signature == 0)
+    {
+        // put the parameters for the colored barrier here, we want to use the same parameters as we used for the ball so we can reuse the same code, just with a different signature
+        int8_t status = pixyController.init(pixy, 2, 40, 150, 40, 150, 40, 20); // Example parameters, adjust as needed
+
+    }
+
+    if (currentState == State::MOVE_BACK_TO_BASE && target.signature == 0)
+    {
+        // put the parameters for the colored barrier here, we want to use the same parameters as we used for the ball so we can reuse the same code, just with a different signature
+        int8_t status = pixyController.init(pixy, 3, 40, 150, 40, 150, 40, 20); // Example parameters, adjust as needed
+
     }
 
     // logger->log(LogLevel::Debug, currentState, 2);
@@ -173,7 +188,7 @@ uint8_t Chameleon::run()
 
         // If we are within 3 cm of an object, transition to controlling the claw
         // reading distance takes multiple frames so we need timing to account for that
-        if (ultraSonicController.isThereObjectWithin(4).isWithinThreshold)
+        if (ultraSonicController.isThereObjectWithin(3.5).isWithinThreshold)
         {
             // logger->info("OBJECT WITHIN THRESHOLD -> GRAB CLAW");
             // Serial.println("Object within threshold, preparing to grab...");
@@ -205,10 +220,111 @@ uint8_t Chameleon::run()
 
         delay(2000); // Wait for the claw to close, adjust as needed
         
-        servoController.open(); // Open the claw to release the ball, we can change this later to only open when we are at the base
+        // servoController.open(); // Open the claw to release the ball, we can change this later to only open when we are at the base
 
         previousState = currentState;
-        currentState = State::SEARCHING_FOR_BALL; // Start searching for the next ball
+        // currentState = State::SEARCHING_FOR_BALL; // Start searching for the next ball
+        currentState = State::CLAW_REPEATS;    // Start claw repeat cycle for testing
+
+        break;
+    }
+
+    case State::CLAW_REPEATS:
+    {
+        // ============================================
+        // Claw (Repeat)
+        // ============================================
+
+        servoController.open();
+        delay(1000); // Interval between open and close, adjust as needed
+        servoController.close();
+        delay(1000);
+        servoController.open();
+        delay(1000); // Interval between open and close, adjust as needed
+        servoController.close();
+        delay(1000);
+        servoController.open();
+        delay(1000); // Interval between open and close, adjust as needed
+        servoController.close();
+        delay(1000);
+        servoController.open();
+        delay(1000); // Interval between open and close, adjust as needed
+        servoController.close();
+        delay(1000);
+        servoController.open();
+        delay(1000); // Interval between open and close, adjust as needed
+        servoController.close();
+        delay(1000);
+        servoController.open();
+        delay(1000); // Interval between open and close, adjust as needed
+        servoController.close();
+        delay(1000);
+        servoController.open();
+        delay(1000); // Interval between open and close, adjust as needed
+        servoController.close();
+        delay(1000);
+        servoController.open();
+        delay(1000); // Interval between open and close, adjust as needed
+        servoController.close();
+        delay(1000);
+        servoController.open();
+        delay(1000); // Interval between open and close, adjust as needed
+        servoController.close();
+
+        previousState = currentState;
+        currentState = State::MOVE_TO_BARRIER; 
+
+        break;
+    }
+
+    case State::MOVE_TO_BARRIER:
+    {
+        // ============================================
+        // Movement (To Barrier)
+        // ============================================
+
+        if (ultraSonicController.isThereObjectWithin(5).isWithinThreshold)
+        {
+            motorController.stop();
+            motorController.rotate(false, 800); // Example parameters, rotate 180 degrees to turn around, adjust as needed
+            previousState = currentState;
+            currentState = State::MOVE_BACK_TO_BASE;
+            motorController.stop();
+            break;
+        }
+
+        // if we are not moving, start moving towards the target
+        if (!motorController.isMoving())
+        {
+            // logger->info("STARTING MOVEMENT...");
+            motorController.move(true, 150); // Example parameters, adjust as needed
+            // Control motors to move towards the target based on target.x and target.y
+        }
+
+        break;
+    }
+
+    case State::MOVE_BACK_TO_BASE:
+    {
+        // ============================================
+        // Movement (To Base)
+        // ============================================
+
+        if (ultraSonicController.isThereObjectWithin(5).isWithinThreshold)
+        {
+            previousState = currentState;
+            currentState = State::SEARCHING_FOR_BALL;
+            motorController.stop();
+            break;
+        }
+
+        // if we are not moving, start moving towards the target
+        if (!motorController.isMoving())
+        {
+            // logger->info("STARTING MOVEMENT...");
+            motorController.move(true, 150); // Example parameters, adjust as needed
+            // Control motors to move towards the target based on target.x and target.y
+        }
 
         break;
     }

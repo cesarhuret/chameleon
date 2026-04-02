@@ -24,6 +24,7 @@ private:
     UltraSonicController ultraSonicController;
     MotorController motorController;
     ServoController servoController;
+    IPixySensor *pixy;
 public:
 
     // should we store a list of all the blocks that were scanned in that frame?
