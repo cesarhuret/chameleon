@@ -1,10 +1,11 @@
 #include "ServoController.h"
 
-void ServoController::init(uint8_t pin, uint8_t interval)
+int8_t ServoController::init(ServoConfig config)
 {
-    servo.init(pin);
-    moveInterval = interval;
+    servo.init(config.servoPin);
+    moveInterval = config.intervalMs;
     servo.write(currentAngle);
+    return Codes::SUCCESS;
 }
 
 bool ServoController::isOpen()

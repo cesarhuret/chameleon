@@ -1,11 +1,11 @@
 #include "MotorController.h"
 
-void MotorController::init(int8_t leftPwmPin, int8_t leftDirPin, int8_t rightPwmPin, int8_t rightDirPin)
+int8_t MotorController::init(MotorConfig config)
 {
-    _pwmPinR = rightPwmPin;
-    _dirPinR = rightDirPin;
-    _pwmPinL = leftPwmPin;
-    _dirPinL = leftDirPin;
+    _pwmPinR = config.rightPwmPin;
+    _dirPinR = config.rightDirPin;
+    _pwmPinL = config.leftPwmPin;
+    _dirPinL = config.leftDirPin;
 
     pinMode(_pwmPinR, OUTPUT);
     pinMode(_dirPinR, OUTPUT);
@@ -13,23 +13,21 @@ void MotorController::init(int8_t leftPwmPin, int8_t leftDirPin, int8_t rightPwm
     pinMode(_dirPinL, OUTPUT);
 
     stop();
+    return Codes::SUCCESS;
 }
 
 bool MotorController::isRotating()
 {
-    //! TODO: IMPLEMENT
     return _isRotating;
 }
 
 bool MotorController::isMoving()
 {
-    //! TODO: IMPLEMENT
     return _isMoving;
 }
 
 void MotorController::rotate(bool _direction, uint8_t _speed)
 {
-    //! TODO: IMPLEMENT
 
     _isRotating = true;
     _isMoving = false;
@@ -49,7 +47,6 @@ void MotorController::rotate(bool _direction, uint8_t _speed)
 
 void MotorController::move(bool _direction, uint8_t _speed)
 {
-    //! TODO: IMPLEMENT
 
     _isMoving = true;
     _isRotating = false;
@@ -70,7 +67,6 @@ void MotorController::move(bool _direction, uint8_t _speed)
 
 void MotorController::stop()
 {
-    //! TODO: IMPLEMENT
 
     analogWrite(_pwmPinR, 0);
     analogWrite(_pwmPinL, 0);

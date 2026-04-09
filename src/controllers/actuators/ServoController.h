@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "actuators/arduino/Servo.h"
+#include "types/Config.h"
 
 class ServoController
 {
@@ -18,7 +19,7 @@ private:
     uint16_t currentAngle = OPEN_ANGLE; // Track current angle for smooth movement
 
 public:
-    void init(uint8_t pin, uint8_t interval);
+    int8_t init(ServoConfig config);
     bool isOpen();
     bool isClosed();
     bool isMoving();

@@ -4,6 +4,8 @@
 #include "sensors/interfaces/IUltraSonicSensor.h"
 #include "types/Block.h"
 #include "types/Codes.h"
+#include "types/Config.h"
+
 
 using namespace Types;
 using namespace Codes;
@@ -15,7 +17,7 @@ private:
     IUltraSonicSensor *ultraSonic;
 
 public:
-    int8_t init(IUltraSonicSensor *ultraSonic);
+    int8_t init(UltraSoundConfig config);
 
     // Perform a full measurement and return distance in cm
     UltraSonicResult readDistanceCm();

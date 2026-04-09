@@ -1,18 +1,19 @@
 #include "UltraSonicController.h"
 
 #include <Arduino.h>
+#include "types/Config.h"
 
 
-int8_t UltraSonicController::init(IUltraSonicSensor *ultraSonic)
+int8_t UltraSonicController::init(UltraSoundConfig config)
 {
-    this->ultraSonic = ultraSonic;
+    this->ultraSonic = config.ultraSonic;
 
     if (this->ultraSonic == nullptr)
     {
         return ULTRASONIC_NOT_AVAILABLE;
     }
 
-    uint8_t status = this->ultraSonic->init();
+    uint8_t status = this->ultraSonic->init(config.trigPin, config.echoPin);
     return status;
 }
 

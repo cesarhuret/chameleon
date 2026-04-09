@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <Arduino.h>
+#include "types/Config.h"
 
 class MotorController
 {
@@ -17,7 +18,7 @@ private:
     bool _isMoving = false;
 
 public:
-    void init(int8_t leftPwmPin, int8_t leftDirPin, int8_t rightPwmPin, int8_t rightDirPin);
+    int8_t init(MotorConfig config);
     bool isRotating();
     bool isMoving();
 

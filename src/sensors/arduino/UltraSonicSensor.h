@@ -6,6 +6,7 @@
 
 #include "sensors/interfaces/IUltraSonicSensor.h"
 #include "types/Codes.h"
+#include "types/Config.h"
 
 using namespace Codes;
 
@@ -13,9 +14,8 @@ using namespace Codes;
 class UltraSonicSensor : public IUltraSonicSensor
 {
 public:
-    UltraSonicSensor(uint8_t trigPin, uint8_t echoPin);
 
-    uint8_t init() override;
+    uint8_t init(uint8_t trigPin, uint8_t echoPin) override;
 
     void writeTrigger();
     float readEchoTimeUs();

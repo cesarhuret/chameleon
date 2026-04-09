@@ -1,13 +1,11 @@
 #include "UltraSonicSensor.h"
 
 
-UltraSonicSensor::UltraSonicSensor(uint8_t trigPin, uint8_t echoPin)
-    : _trigPin(trigPin), _echoPin(echoPin)
+uint8_t UltraSonicSensor::init(uint8_t trigPin, uint8_t echoPin)
 {
-}
+    _trigPin = trigPin;
+    _echoPin = echoPin;
 
-uint8_t UltraSonicSensor::init()
-{
     pinMode(_trigPin, OUTPUT);
     pinMode(_echoPin, INPUT);
 
