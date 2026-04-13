@@ -43,6 +43,8 @@ public:
 
     PixyResult findBase();
 
+    PixyArrayResult getBlocks();
+
     PixyResult getBall() const;
 
     PixyResult getBase() const;

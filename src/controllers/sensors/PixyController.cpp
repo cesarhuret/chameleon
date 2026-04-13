@@ -166,6 +166,11 @@ PixyArrayResult PixyController::getHiddenBlocks()
     return Types::PixyArrayResult{SUCCESS, m_lostBlocks, m_lostCount};
 }
 
+PixyArrayResult PixyController::getBlocks()
+{
+    return pixy->getBlocks();
+}
+
 PixyResult PixyController::getBall() const
 {
     return pixy->getBlock(currentTargetBallIndex);
