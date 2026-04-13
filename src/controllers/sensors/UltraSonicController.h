@@ -14,10 +14,13 @@ class UltraSonicController
 {
 
 private:
-    IUltraSonicSensor *ultraSonic;
+    IUltraSonicSensor *ultraSonic = nullptr;
 
 public:
-    int8_t init(UltraSoundConfig config);
+
+    UltraSonicController() = default;
+
+    int8_t init(IUltraSonicSensor *ultraSonic, uint8_t trigPin, uint8_t echoPin);
 
     // Perform a full measurement and return distance in cm
     UltraSonicResult readDistanceCm();

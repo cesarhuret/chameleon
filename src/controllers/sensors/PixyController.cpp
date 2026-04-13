@@ -2,16 +2,12 @@
 #include "constants/Pixy.h"
 #include <Arduino.h>
 
-uint8_t PixyController::init(PixyConfig config)
+uint8_t PixyController::init(IPixySensor *pixy)
 {
-    this->pixy = config.pixy;
-    this->currentBallSig = config.ballParams.signatures[0]; // Start with the first signature for the ball
-    this->ballParams = config.ballParams;
-    this->baseParams = config.baseParams;
-    this->thresholdX = config.thresholdX;
-    this->thresholdY = config.thresholdY;
-    this->currentTargetBallIndex = -1; // Initialize to an invalid index
-    this->currentTargetBaseIndex = -1; // Initialize to an invalid index
+    this->pixy = pixy;
+    this->currentBallSig = BALL_SIG_RED;
+    this->currentTargetBallIndex = -1;
+    this->currentTargetBaseIndex = -1;
 
     if (this->pixy == nullptr)
     {
@@ -19,8 +15,8 @@ uint8_t PixyController::init(PixyConfig config)
     }
 
     delay(50);
-    
     uint8_t status = this->pixy->init();
+
     if (status != SUCCESS)
     {
         // failed to initialize Pixy, return error code
@@ -29,7 +25,7 @@ uint8_t PixyController::init(PixyConfig config)
     return SUCCESS;
 }
 
-PixyResult PixyController::_findTarget(TargetParams targetParams, uint8_t targetSig)
+PixyResult PixyController::_findTarget(uint8_t targetSig)
 {
     const PixyArrayResult result = pixy->getBlocks();
     if (result.status < SUCCESS)
@@ -37,33 +33,44 @@ PixyResult PixyController::_findTarget(TargetParams targetParams, uint8_t target
         return PixyResult{result.status, EMPTY_BLOCK}; // Return an empty block on error
     }
 
+    DetectedBlock bestBlock = EMPTY_BLOCK;
+
     for (uint8_t i = 0; i < result.count; i++)
     {
         const DetectedBlock &block = result.blocks[i];
 
-        if (_isTarget(block, ballParams, targetSig))
+        if (_isTarget(block, targetSig))
         {
             // Return the first block that matches the criteria
             // We need to change this to return the block that is closest to the robot.
-            this->currentTargetBallIndex = block.index; // Store the index of the current target ball
-            return PixyResult{SUCCESS, block};
+            if (block.y > bestBlock.y)
+            {
+                bestBlock = block;
+            }
         }
     }
-    return PixyResult{PIXY_TARGET_NOT_FOUND, EMPTY_BLOCK}; // Return an empty block if no target ball is found
+
+    if (bestBlock.signature == 0)
+    {
+        return PixyResult{PIXY_TARGET_NOT_FOUND, EMPTY_BLOCK}; // Return an empty block if no valid target is found
+    }
+    else
+    {
+        this->currentTargetBallIndex = bestBlock.index; // Store the index of the current target ball
+        return PixyResult{SUCCESS, bestBlock};
+    }
 }
 
-bool PixyController::_isTarget(DetectedBlock block, TargetParams targetParams, uint8_t targetSig)
+bool PixyController::_isTarget(DetectedBlock block, uint8_t targetSig)
 {
     if (block.signature == 0)
     {
         return false;
     }
 
-    if (block.signature == targetSig)
+    if (block.signature != targetSig)
     {
-        // If the signature matches, we can further check the size criteria if needed
-        // For now, we will just check the signature
-        return true;
+        return false;
     }
 
     // if (block.height < min_Height || block.height > max_Height || block.width < min_Width || block.width > max_Width)
@@ -76,7 +83,7 @@ bool PixyController::_isTarget(DetectedBlock block, TargetParams targetParams, u
 
 PixyResult PixyController::findBall()
 {
-    return _findTarget(ballParams, currentBallSig);
+    return _findTarget(currentBallSig);
 }
 
 PixyResult PixyController::findBase()
@@ -87,7 +94,76 @@ PixyResult PixyController::findBase()
         return getBase();
     }
 
-    return _findTarget(baseParams, baseParams.signatures[0]); // Look for the first signature in the base parameters
+    return _findTarget(BASE_SIG_1); // Look for the first signature in the base parameters
+}
+
+uint8_t PixyController::updateBlocks()
+{
+    return pixy->updateBlocks();
+}
+
+uint8_t PixyController::updateHiddenBlocks()
+{
+    Types::PixyArrayResult result = pixy->getBlocks();
+    if (result.status < SUCCESS)
+    {
+        return result.status; // Return the error status
+    }
+
+    // check which blocks from last frame are no longer visible
+    for (uint8_t i = 0; i < m_prevCount; i++)
+    {
+        bool stillVisible = false;
+        for (uint8_t j = 0; j < result.count; j++)
+        {
+            if (result.blocks[j].index == m_prevBlocks[i].index)
+            {
+                stillVisible = true;
+                break;
+            }
+        }
+
+        // if it disappeared and was near the bottom, record it
+        if (!stillVisible && m_prevBlocks[i].y > 170)
+        {
+            if (!stillVisible && m_prevBlocks[i].y > 170 && m_prevBlocks[i].signature != currentBallSig)
+            {
+                m_lostBlocks[m_lostCount % 4] = m_prevBlocks[i];
+                m_lostBlocks[m_lostCount % 4].age = 0; // repurpose index to store order of lost blocks
+                m_lostCount++;
+                if (m_lostCount > 4)
+                    m_lostCount = 4;
+            }
+        }
+    }
+
+    for (uint8_t i = 0; i < m_lostCount; i++)
+    {
+        m_lostBlocks[i].age++;
+
+        // Expire old entries — ball probably rolled away after 30 frames
+        if (m_lostBlocks[i].age > 30)
+        {
+            for (uint8_t j = i; j < m_lostCount - 1; j++)
+                m_lostBlocks[j] = m_lostBlocks[j + 1];
+            m_lostCount--;
+            i--;
+        }
+    }
+
+    // copy current blocks into prev for next call
+    m_prevCount = result.count > 4 ? 4 : result.count;
+    for (uint8_t i = 0; i < result.count; i++)
+    {
+        m_prevBlocks[i] = result.blocks[i];
+    }
+
+    return SUCCESS;
+}
+
+PixyArrayResult PixyController::getHiddenBlocks()
+{
+    return Types::PixyArrayResult{SUCCESS, m_lostBlocks, m_lostCount};
 }
 
 PixyResult PixyController::getBall() const
@@ -115,17 +191,17 @@ uint8_t PixyController::resetBase()
 uint8_t PixyController::incrementBallSig()
 {
     // Increment the current ball signature to look for the next ball in the next search
-    if (currentBallSig == ballParams.signatures[0])
+    if (currentBallSig == BALL_SIG_RED)
     {
-        currentBallSig = ballParams.signatures[1];
+        currentBallSig = BALL_SIG_GREEN;
     }
-    else if (currentBallSig == ballParams.signatures[1])
+    else if (currentBallSig == BALL_SIG_GREEN)
     {
-        currentBallSig = ballParams.signatures[2];
+        currentBallSig = BALL_SIG_BLUE;
     }
     else
     {
-        currentBallSig = ballParams.signatures[0]; // Wrap around to the first signature
+        currentBallSig = BALL_SIG_RED;
     }
     return SUCCESS; // Return success
 }
@@ -138,6 +214,6 @@ bool PixyController::isCentered(DetectedBlock block) const
     auto dx = (int16_t)block.x - centerX;
     // auto dy = (int16_t)block.y - centerY;
 
-    return (dx <= thresholdX && dx >= -thresholdX);
-    //    && (dy <= thresholdY && dy >= -thresholdY);
+    return (dx <= THRESHOLD_X && dx >= -THRESHOLD_X);
+    //    && (dy <= THRESHOLD_Y && dy >= -THRESHOLD_Y);
 }

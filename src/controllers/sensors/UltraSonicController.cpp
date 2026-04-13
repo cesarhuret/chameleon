@@ -4,16 +4,16 @@
 #include "types/Config.h"
 
 
-int8_t UltraSonicController::init(UltraSoundConfig config)
+int8_t UltraSonicController::init(IUltraSonicSensor *ultraSonic, uint8_t trigPin, uint8_t echoPin)
 {
-    this->ultraSonic = config.ultraSonic;
+    this->ultraSonic = ultraSonic;
 
     if (this->ultraSonic == nullptr)
     {
         return ULTRASONIC_NOT_AVAILABLE;
     }
 
-    uint8_t status = this->ultraSonic->init(config.trigPin, config.echoPin);
+    uint8_t status = this->ultraSonic->init(trigPin, echoPin);
     return status;
 }
 

@@ -13,9 +13,7 @@ namespace Types
         FIND_BASE,
         ROTATE_TO_CENTER,
         MOVING_TO_BASE,
-        // CLAW_REPEATS,        // for testing, repeat the grab/release cycle a few times
-        MOVE_TO_BARRIER,        // for testing, move to the barrier and stop there
-        MOVE_BACK_TO_BASE        // for testing, move back to the base and stop there
+        OBSTACLE
     };
 
     inline const char *toString(State state)

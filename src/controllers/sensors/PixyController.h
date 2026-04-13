@@ -5,6 +5,7 @@
 #include "types/Block.h"
 #include "types/Codes.h"
 #include "types/Config.h"
+#include "config.h"
 
 using namespace Types;
 using namespace Codes;
@@ -19,13 +20,13 @@ private:
     uint8_t currentBallSig;
     int16_t currentTargetBallIndex;
     int16_t currentTargetBaseIndex;
-    TargetParams ballParams;
-    TargetParams baseParams;
-    int16_t thresholdX;
-    int16_t thresholdY;
+    uint8_t m_prevCount;
+    Types::DetectedBlock m_prevBlocks[4];
+    uint8_t m_lostCount;
+    Types::DetectedBlock m_lostBlocks[4];
 
-    bool _isTarget(DetectedBlock block, TargetParams targetParams, uint8_t targetSig);
-    PixyResult _findTarget(TargetParams targetParams, uint8_t targetSig);
+    bool _isTarget(DetectedBlock block, uint8_t targetSig);
+    PixyResult _findTarget(uint8_t targetSig);
 
 public:
 
@@ -33,12 +34,10 @@ public:
         : pixy(nullptr),
         currentBallSig(0),
         currentTargetBallIndex(-1),
-        currentTargetBaseIndex(-1),
-        thresholdX(0),
-        thresholdY(0)
+        currentTargetBaseIndex(-1)
     {}
 
-    uint8_t init(PixyConfig config);
+    uint8_t init(IPixySensor* pixy);
 
     PixyResult findBall();
 
@@ -47,6 +46,12 @@ public:
     PixyResult getBall() const;
 
     PixyResult getBase() const;
+
+    uint8_t updateBlocks();
+
+    uint8_t updateHiddenBlocks();
+
+    PixyArrayResult getHiddenBlocks();
 
     bool isCentered(DetectedBlock block) const;
 

@@ -1,10 +1,11 @@
 #include "ServoController.h"
 
-int8_t ServoController::init(ServoConfig config)
+int8_t ServoController::init()
 {
-    servo.init(config.servoPin);
-    moveInterval = config.intervalMs;
-    servo.write(currentAngle);
+    servo.init(SERVO_PIN);
+
+    close();
+
     return Codes::SUCCESS;
 }
 
@@ -34,27 +35,6 @@ void ServoController::open()
     servo.write(OPEN_ANGLE);
     currentAngle = OPEN_ANGLE;
     moving = false;
-
-    // int targetAngle = 120; // Adjust angle as needed for open position
-
-    // if (currentAngle != targetAngle)
-    // {
-    //     unsigned long now = millis();
-    //     if (now - lastMoveTime >= moveInterval)
-    //     {
-    //         if (currentAngle < targetAngle)
-    //             currentAngle++;
-    //         else if (currentAngle > targetAngle)
-    //             currentAngle--;
-    //         moving = true;
-    //         servo.write(currentAngle);
-    //         lastMoveTime = now;
-    //     }
-    // }
-    // else
-    // {
-    //     moving = false;
-    // }
 }
 
 void ServoController::close()
@@ -68,25 +48,4 @@ void ServoController::close()
     servo.write(CLOSED_ANGLE);
     currentAngle = CLOSED_ANGLE;
     moving = false;
-
-    // int targetAngle = 170; // Adjust angle as needed for closed position
-
-    // if (currentAngle != targetAngle)
-    // {
-    //     unsigned long now = millis();
-    //     if (now - lastMoveTime >= moveInterval)
-    //     {
-    //         if (currentAngle < targetAngle)
-    //             currentAngle++;
-    //         else if (currentAngle > targetAngle)
-    //             currentAngle--;
-    //         moving = true;
-    //         servo.write(currentAngle);
-    //         lastMoveTime = now;
-    //     }
-    // }
-    // else
-    // {
-    //     moving = false;
-    // }
 }

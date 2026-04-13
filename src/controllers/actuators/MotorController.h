@@ -10,15 +10,11 @@ class MotorController
 
 private:
     uint8_t _speed;
-    uint8_t _pwmPinR;
-    uint8_t _dirPinR;
-    uint8_t _pwmPinL;
-    uint8_t _dirPinL;
     bool _isRotating = false;
     bool _isMoving = false;
 
 public:
-    int8_t init(MotorConfig config);
+    int8_t init();
     bool isRotating();
     bool isMoving();
 

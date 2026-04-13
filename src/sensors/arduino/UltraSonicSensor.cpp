@@ -13,10 +13,6 @@ uint8_t UltraSonicSensor::init(uint8_t trigPin, uint8_t echoPin)
 
     float duration = readEchoTimeUs(); // Read initial echo to clear any noise
 
-    Serial.print("Initial ultrasonic sensor check, duration: ");
-    Serial.println(duration);
-
-
     if (duration == 0)
     {
         // No echo received, sensor might not be working

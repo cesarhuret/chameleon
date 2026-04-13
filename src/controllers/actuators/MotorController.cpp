@@ -1,16 +1,12 @@
 #include "MotorController.h"
+#include "config.h"
 
-int8_t MotorController::init(MotorConfig config)
+int8_t MotorController::init()
 {
-    _pwmPinR = config.rightPwmPin;
-    _dirPinR = config.rightDirPin;
-    _pwmPinL = config.leftPwmPin;
-    _dirPinL = config.leftDirPin;
-
-    pinMode(_pwmPinR, OUTPUT);
-    pinMode(_dirPinR, OUTPUT);
-    pinMode(_pwmPinL, OUTPUT);
-    pinMode(_dirPinL, OUTPUT);
+    pinMode(RIGHT_PWM_PIN, OUTPUT);
+    pinMode(RIGHT_DIR_PIN, OUTPUT);
+    pinMode(LEFT_PWM_PIN, OUTPUT);
+    pinMode(LEFT_DIR_PIN, OUTPUT);
 
     stop();
     return Codes::SUCCESS;
@@ -28,48 +24,54 @@ bool MotorController::isMoving()
 
 void MotorController::rotate(bool _direction, uint8_t _speed)
 {
-
     _isRotating = true;
     _isMoving = false;
 
-    if(_direction) { // left
-        digitalWrite(_dirPinR, LOW);
-        digitalWrite(_dirPinL, HIGH);
-    } else { // right
-        digitalWrite(_dirPinR, HIGH);
-        digitalWrite(_dirPinL, LOW);
+    if (_direction)
+    { // right
+        digitalWrite(RIGHT_DIR_PIN, LOW);
+        digitalWrite(LEFT_DIR_PIN, HIGH);
+        analogWrite(RIGHT_PWM_PIN, _speed);
+        analogWrite(LEFT_PWM_PIN, _speed);
     }
-    analogWrite(_pwmPinR, _speed);
-    analogWrite(_pwmPinL, _speed);
+    else
+    { // left
+        digitalWrite(RIGHT_DIR_PIN, HIGH);
+        digitalWrite(LEFT_DIR_PIN, LOW);
+        analogWrite(RIGHT_PWM_PIN, _speed);
+        analogWrite(LEFT_PWM_PIN, _speed);
+    }
 
     return;
 }
 
 void MotorController::move(bool _direction, uint8_t _speed)
 {
-
     _isMoving = true;
     _isRotating = false;
 
-    if(_direction) { // forward
-        digitalWrite(_dirPinR, HIGH);
-        digitalWrite(_dirPinL, HIGH);
-    } else { // backward
-        digitalWrite(_dirPinR, LOW);
-        digitalWrite(_dirPinL, LOW);
+    if (_direction)
+    { // forward
+        digitalWrite(RIGHT_DIR_PIN, HIGH);
+        digitalWrite(LEFT_DIR_PIN, HIGH);
+        analogWrite(RIGHT_PWM_PIN, _speed + 8);
+        analogWrite(LEFT_PWM_PIN, _speed);
     }
-
-    analogWrite(_pwmPinR, _speed);
-    analogWrite(_pwmPinL, _speed);
+    else
+    { // backward
+        digitalWrite(RIGHT_DIR_PIN, LOW);
+        digitalWrite(LEFT_DIR_PIN, LOW);
+        analogWrite(RIGHT_PWM_PIN, _speed + 15);
+        analogWrite(LEFT_PWM_PIN, _speed);
+    }
 
     return;
 }
 
 void MotorController::stop()
 {
-
-    analogWrite(_pwmPinR, 0);
-    analogWrite(_pwmPinL, 0);
+    analogWrite(RIGHT_PWM_PIN, 0);
+    analogWrite(LEFT_PWM_PIN, 0);
     _isMoving = false;
     _isRotating = false;
 
