@@ -4,6 +4,8 @@
 #include "constants/Pixy.h"
 #include "types/Config.h"
 
+Types::DetectedBlock lastTarget = Types::EMPTY_BLOCK;
+
 uint8_t Chameleon::init(ILogger *logger, RuntimeConfig config)
 {
     this->logger = logger;
@@ -26,6 +28,14 @@ uint8_t Chameleon::init(ILogger *logger, RuntimeConfig config)
 
     logger->log(LogLevel::Info, Codes::ULTRASONIC_INITIALIZATION_OK, 0);
 
+    status = servoController.init();
+    if (status != Codes::SUCCESS)
+    {
+        return status;
+    }
+
+    logger->log(LogLevel::Info, Codes::SERVO_INITIALIZATION_OK, 0);
+
     status = motorController.init();
     if (status != Codes::SUCCESS)
     {
@@ -33,6 +43,10 @@ uint8_t Chameleon::init(ILogger *logger, RuntimeConfig config)
     }
 
     logger->log(LogLevel::Info, Codes::MOTOR_INITIALIZATION_OK, 0);
+
+    delay(100); // Small delay to ensure all components are initialized before moving the servo
+
+    servoController.open();
 
     return Codes::SUCCESS; // Return success if all initializations are successful
 }
@@ -42,45 +56,55 @@ uint8_t Chameleon::run()
     // just refresh whatever blocks the pixycam can see
     pixyController.updateBlocks();
 
-    // just returns a list of blocks
-    PixyArrayResult result = pixyController.getBlocks();
+    PixyResult result = pixyController.findBall();
+    Types::DetectedBlock target = result.block;
 
-    DetectedBlock ball;
+    if(target.signature != 0) {
+        lastTarget = target;
+    }
 
-    // print out all blocks
-    for (uint8_t i = 0; i < result.count; i++) {
+    // If the target is centered, transition to moving towards the ball
+    if (pixyController.isCentered(target))
+    {
+        motorController.stop();
 
-        const DetectedBlock &block = result.blocks[i];
+        motorController.move(true, 70); // Move forward at speed 100
+    }
 
-        Serial.print("Block ");
-        Serial.print(block.index);
-        Serial.print(": ");
-        Serial.print(block.x);
-        Serial.print(", ");
-        Serial.println(block.y);
+    if (lastTarget.y > 170){
+        motorController.move(true, 100); // Move forward at speed 100
+    }
+    else if (target.signature == 0)
+    {
+        motorController.stop();
+    }
 
-        if (block.signature == BALL_SIG_RED) {
-            ball = block;
+    if (bottomUltrasoundController.readDistanceCm().distanceCm >= 8) {
+        motorController.stop();
+        servoController.close();
+    }
+
+    // If we are not rotating, start rotating to center the target in the camera's view
+    if (target.signature != 0 && !motorController.isRotating())
+    {
+        int16_t centerX = PIXY_CAM_WIDTH / 2;
+
+        int16_t dx = (int16_t)target.x - centerX;
+
+        // Control motors to adjust position based on target.x and target.y
+        if (dx > THRESHOLD_X)
+        {
+            logger->log(LogLevel::Debug, dx, 0);
+            // target is to the right, rotate right
+            motorController.rotate(true, 50); // Example parameters, adjust as needed
+        }
+        else if (dx < -THRESHOLD_X)
+        {
+            logger->log(LogLevel::Debug, dx, 0);
+            // target is to the left, rotate left
+            motorController.rotate(false, 50); // Example parameters, adjust as needed
         }
     }
-
-    // TODO: We need to get the robot to rotate to the ball we want, center, and move to it 
-
-    if(ball.signature != 0) {
-        Serial.println("Found a ball!");
-    }
-
-    // if block is to the left, rotate left
-
-
-    // if block is to the right, rotate right
-
-
-    // motorController.move(true, 100); // Move forward at speed 100
-    // motorController.move(false, 100); // Move backward at speed 100
-    // motorController.rotate(true, 100); // Rotate right at speed 100
-    // motorController.rotate(false, 100); // Rotate left at speed 100
-
 
     return SUCCESS;
 }
