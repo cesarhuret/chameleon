@@ -1,9 +1,10 @@
 #include "UltraSonicController.h"
 
 #include <Arduino.h>
+#include "types/Config.h"
 
 
-int8_t UltraSonicController::init(IUltraSonicSensor *ultraSonic)
+int8_t UltraSonicController::init(IUltraSonicSensor *ultraSonic, uint8_t trigPin, uint8_t echoPin)
 {
     this->ultraSonic = ultraSonic;
 
@@ -12,7 +13,7 @@ int8_t UltraSonicController::init(IUltraSonicSensor *ultraSonic)
         return ULTRASONIC_NOT_AVAILABLE;
     }
 
-    uint8_t status = this->ultraSonic->init();
+    uint8_t status = this->ultraSonic->init(trigPin, echoPin);
     return status;
 }
 

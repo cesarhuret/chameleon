@@ -12,9 +12,11 @@ public:
 
     virtual uint8_t init() = 0;
 
+    virtual uint8_t updateBlocks() = 0;
+    
     // Return pointer to internal blocks buffer and set count
     virtual Types::PixyArrayResult getBlocks() = 0;
-
+    
     virtual Types::PixyResult getBlock(uint8_t index) = 0;
 };
 

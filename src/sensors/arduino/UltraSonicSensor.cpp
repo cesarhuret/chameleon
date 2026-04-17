@@ -1,23 +1,17 @@
 #include "UltraSonicSensor.h"
 
 
-UltraSonicSensor::UltraSonicSensor(uint8_t trigPin, uint8_t echoPin)
-    : _trigPin(trigPin), _echoPin(echoPin)
+uint8_t UltraSonicSensor::init(uint8_t trigPin, uint8_t echoPin)
 {
-}
+    _trigPin = trigPin;
+    _echoPin = echoPin;
 
-uint8_t UltraSonicSensor::init()
-{
     pinMode(_trigPin, OUTPUT);
     pinMode(_echoPin, INPUT);
 
     writeTrigger(); // Send initial trigger to ensure sensor is ready
 
     float duration = readEchoTimeUs(); // Read initial echo to clear any noise
-
-    Serial.print("Initial ultrasonic sensor check, duration: ");
-    Serial.println(duration);
-
 
     if (duration == 0)
     {

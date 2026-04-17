@@ -8,23 +8,23 @@ uint8_t PixySensor::init()
     return status;
 }
 
-Types::PixyArrayResult PixySensor::getBlocks()
+uint8_t PixySensor::updateBlocks()
 {
-    int8_t status = pixy.ccc.getBlocks(true);
+     int8_t status = pixy.ccc.getBlocks(true);
 
     if (status < 0)
     {
-        return Types::PixyArrayResult{uint8_t(status), nullptr, 0};
+        return uint8_t(status);
     }
 
-    uint8_t count = pixy.ccc.numBlocks;
-    if (count > PIXY_MAX_BLOCKS)
+    m_blockCount = pixy.ccc.numBlocks;
+    if (m_blockCount > PIXY_MAX_BLOCKS)
     {
-        count = PIXY_MAX_BLOCKS;
+        m_blockCount = PIXY_MAX_BLOCKS;
     }
 
     // Convert Pixy2 blocks to our Block type
-    for (uint8_t i = 0; i < count; i++)
+    for (uint8_t i = 0; i < m_blockCount; i++)
     {
         // Use Pixy2 namespace for Pixy2's Block struct
         const Pixy::Block &pixyBlock = pixy.ccc.blocks[i];
@@ -39,41 +39,22 @@ Types::PixyArrayResult PixySensor::getBlocks()
         m_blocks[i].angle = pixyBlock.m_angle;
     }
 
-    return Types::PixyArrayResult{uint8_t(status), m_blocks, count};
+    return status;
+}
+
+Types::PixyArrayResult PixySensor::getBlocks()
+{
+    return Types::PixyArrayResult{Codes::SUCCESS, m_blocks, m_blockCount};
 }
 
 Types::PixyResult PixySensor::getBlock(uint8_t index)
 {
-    int8_t status = pixy.ccc.getBlocks(true);
-
-    if (status < 0)
+    for (uint8_t i = 0; i < m_blockCount; i++)
     {
-        return Types::PixyResult{uint8_t(status), Types::EMPTY_BLOCK};
-    }
-
-    uint8_t count = pixy.ccc.numBlocks;
-    if (count > PIXY_MAX_BLOCKS)
-    {
-        count = PIXY_MAX_BLOCKS;
-    }
-
-    for (uint8_t i = 0; i < count; i++)
-    {
-        if (pixy.ccc.blocks[i].m_index == index)
+        if (m_blocks[i].index == index)
         {
-            const Pixy::Block &pixyBlock = pixy.ccc.blocks[i];
-
-            Types::DetectedBlock b;
-            b.x = pixyBlock.m_x;
-            b.y = pixyBlock.m_y;
-            b.width = pixyBlock.m_width;
-            b.height = pixyBlock.m_height;
-            b.signature = pixyBlock.m_signature;
-            b.area = pixyBlock.m_width * pixyBlock.m_height;
-            b.age = pixyBlock.m_age;
-            b.index = pixyBlock.m_index;
-            b.angle = pixyBlock.m_angle;
-            return Types::PixyResult{Codes::SUCCESS, b};
+        
+            return Types::PixyResult{Codes::SUCCESS, m_blocks[i]};
         }
     }
 

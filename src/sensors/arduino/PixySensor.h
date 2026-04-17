@@ -19,10 +19,12 @@ class PixySensor : public IPixySensor
 {
 private:
     Pixy2 pixy;
+    uint8_t m_blockCount;
     Types::DetectedBlock m_blocks[PIXY_MAX_BLOCKS];
 
 public:
     uint8_t init() override;
+    uint8_t updateBlocks() override;
     Types::PixyArrayResult getBlocks() override;
     Types::PixyResult getBlock(uint8_t index) override;
 };

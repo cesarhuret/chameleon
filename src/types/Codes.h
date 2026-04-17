@@ -17,6 +17,7 @@ namespace Codes {
     constexpr uint8_t PIXY_INVALID_INDEX = 0x22;
     constexpr uint8_t PIXY_BLOCK_NOT_FOUND = 0x23;
     constexpr uint8_t PIXY_TARGET_NOT_FOUND = 0x24;
+    constexpr uint8_t PIXY_INITIALIZATION_OK = 0x25; // Used internally to indicate successful initialization, not an error code
 
     // #define PIXY_RESULT_OK                       0
     // #define PIXY_RESULT_ERROR                    -1
@@ -28,6 +29,11 @@ namespace Codes {
 
     constexpr uint8_t ULTRASONIC_NOT_AVAILABLE = 0x30;
     constexpr uint8_t ULTRASONIC_OUT_OF_RANGE = 0x31;
+    constexpr uint8_t ULTRASONIC_INITIALIZATION_OK = 0x32; // Used internally to indicate successful initialization, not an error code
+    
+    constexpr uint8_t SERVO_INITIALIZATION_OK = 0x40; // Used internally to indicate successful initialization, not an error code
+    
+    constexpr uint8_t MOTOR_INITIALIZATION_OK = 0x50; // Used internally to indicate successful initialization, not an error code
 
     constexpr uint8_t HALT = 0x09;
 }

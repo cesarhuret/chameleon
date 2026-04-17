@@ -7,72 +7,56 @@
 #include "helpers/logging/BluetoothLogger.h"
 #include "helpers/logging/SerialLogger.h"
 #include "types/Codes.h"
+#include "types/Config.h"
 
 constexpr unsigned long BAUD_RATE = 115200UL;
 
 Chameleon chameleon;
 SerialLogger logger(LogLevel::Debug, BAUD_RATE);
-// BluetoothLogger logger(Serial, LogLevel::Debug, BAUD_RATE); // uses 0 and 1
 PixySensor pixySensor;
-UltraSonicSensor ultraSonicSensor(9, 8); // trig, echo
-ServoController servoController;
-MotorController motorController;
+UltraSonicSensor bottomUltrasoundSensor;
+UltraSonicSensor topUltrasoundSensor;
+LED led;
+// BluetoothLogger logger(Serial, LogLevel::Debug, BAUD_RATE); // uses 0 and 1
+extern unsigned int __heap_start;
+extern void *__brkval;
 
+int freeMemory() {
+  int v;
+  return (int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval);
+}
 void setup()
 {
 
     Serial.begin(BAUD_RATE);
 
-    // logger.init();
-    // logger.log(LogLevel::Info, 20000, 1);
+    SPI.begin();
 
-    // servoController.init(12, 20); // Example pin and interval, adjust as needed
-    // motorController.init(3, 4, 5, 6); // Example pins for left and right motors, adjust as needed
+    RuntimeConfig config = {
+        .pixy = &pixySensor,
+        .bottomUltraSonic = &bottomUltrasoundSensor,
+        .topUltraSonic = &topUltrasoundSensor
+    };
+    
+    Serial.println(freeMemory());
 
-    uint8_t status = chameleon.init(&logger, &pixySensor, &ultraSonicSensor); // Pass both sensors to the Chameleon controller
+    uint8_t status = chameleon.init(&logger, config);
     if (status != Codes::SUCCESS)
     {
         logger.log(LogLevel::Error, status, 0);
         halt(); // Halt on initialization failure
     }
 
-    logger.log(LogLevel::Info, Codes::SETUP_SUCCESS, 0);
+    // logger.log(LogLevel::Info, Codes::SETUP_SUCCESS, 0);
+    return;
 }
 
 void loop()
 {
 
-
-    // // digitalWrite(4, HIGH);
-    // // digitalWrite(6, HIGH);
-    // // analogWrite(3, 190);
-    // // analogWrite(5, 190);
-
-    // motorController.move(true, 100); // Example parameters, adjust as needed
-
-    // delay(500);
-    
-    // motorController.stop();
-    
-    // motorController.move(false, 100); // Example parameters, adjust as needed
-
-    // delay(500);
-
-    // // // analogWrite(3, 0);
-    // // // analogWrite(5, 0);
-
-    // motorController.stop();
-
-    // // delay(2000);
-
-    // servoController.open();
-    // delay(2000);
-    // servoController.close();
-    // delay(2000);
+    logger.log(LogLevel::Info, freeMemory(), 0);
 
     uint8_t status = chameleon.run();
-    // logger.log(LogLevel::Info, status, 0);
-
     if (status != Codes::SUCCESS)
     {
         logger.log(LogLevel::Error, status, 0);
@@ -86,6 +70,13 @@ void halt()
     while (true)
     {
         logger.log(LogLevel::Error, Codes::HALT, 0);
-        delay(5000); // Log the error message every 5 seconds
+        
+        led.write(true, false, false); // Indicate halt state with red LED
+
+        delay(200);
+
+        led.write(false, false, false); // Turn off LED
+        
+        delay(200); 
     }
 }

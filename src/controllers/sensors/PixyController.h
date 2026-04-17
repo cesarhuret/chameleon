@@ -4,9 +4,12 @@
 #include "sensors/interfaces/IPixySensor.h"
 #include "types/Block.h"
 #include "types/Codes.h"
+#include "types/Config.h"
+#include "config.h"
 
 using namespace Types;
 using namespace Codes;
+
 
 
 class PixyController
@@ -14,27 +17,49 @@ class PixyController
 
 private:
     IPixySensor* pixy;
+    uint8_t currentBallSig;
     int16_t currentTargetBallIndex;
-    int8_t targetSignature;
-    int16_t min_Height;
-    int16_t max_Height;
-    int16_t min_Width;
-    int16_t max_Width;
-    int16_t thresholdX;
-    int16_t thresholdY;
+    int16_t currentTargetBaseIndex;
+    uint8_t m_prevCount;
+    Types::DetectedBlock m_prevBlocks[4];
+    uint8_t m_lostCount;
+    Types::DetectedBlock m_lostBlocks[4];
 
-    bool isBall(DetectedBlock block);
+    bool _isTarget(DetectedBlock block, uint8_t targetSig);
+    PixyResult _findTarget(uint8_t targetSig);
 
 public:
-    uint8_t init(IPixySensor* pixy, int8_t targetSignature, int16_t min_Height, int16_t max_Height, int16_t min_Width, int16_t max_Width, int16_t thresholdX, int16_t thresholdY);
 
-    PixyResult findTargetBall();
+    PixyController() 
+        : pixy(nullptr),
+        currentBallSig(0),
+        currentTargetBallIndex(-1),
+        currentTargetBaseIndex(-1)
+    {}
 
-    PixyResult getCurrentTargetBall() const;
+    uint8_t init(IPixySensor* pixy);
 
-    bool isBlockCentered(DetectedBlock block) const;
+    PixyResult findBall();
 
-    uint8_t resetCurrentTargetBall();
+    PixyResult findBase();
+
+    PixyResult getBall() const;
+
+    PixyResult getBase() const;
+
+    uint8_t updateBlocks();
+
+    uint8_t updateHiddenBlocks();
+
+    PixyArrayResult getHiddenBlocks();
+
+    bool isCentered(DetectedBlock block) const;
+
+    uint8_t resetBall();
+
+    uint8_t resetBase();
+
+    uint8_t incrementBallSig();
 };
 
 #endif

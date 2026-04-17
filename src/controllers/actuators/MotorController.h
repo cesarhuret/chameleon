@@ -3,21 +3,18 @@
 
 #include <stdint.h>
 #include <Arduino.h>
+#include "types/Config.h"
 
 class MotorController
 {
 
 private:
     uint8_t _speed;
-    uint8_t _pwmPinR;
-    uint8_t _dirPinR;
-    uint8_t _pwmPinL;
-    uint8_t _dirPinL;
     bool _isRotating = false;
     bool _isMoving = false;
 
 public:
-    void init(int8_t leftPwmPin, int8_t leftDirPin, int8_t rightPwmPin, int8_t rightDirPin);
+    int8_t init();
     bool isRotating();
     bool isMoving();
 
