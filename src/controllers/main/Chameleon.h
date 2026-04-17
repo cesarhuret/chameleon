@@ -4,6 +4,7 @@
 #include "helpers/interfaces/ILogger.h"
 #include "sensors/interfaces/IPixySensor.h"
 #include "sensors/interfaces/IUltraSonicSensor.h"
+#include "actuators/arduino/LED.h"
 #include "controllers/sensors/PixyController.h"
 #include "controllers/sensors/UltraSonicController.h"
 #include "controllers/actuators/MotorController.h"
@@ -25,6 +26,7 @@ private:
     UltraSonicController topUltrasoundController;
     MotorController motorController;
     ServoController servoController;
+    LED led;
 
 public:
     // should we store a list of all the blocks that were scanned in that frame?

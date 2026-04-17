@@ -32,8 +32,8 @@
 // =========================
 #define SERVO_PIN 7
 #define SERVO_INTERVAL_MS 20
-#define OPEN_ANGLE 130
-#define CLOSED_ANGLE 170
+#define OPEN_ANGLE 90
+#define CLOSED_ANGLE 140
 #define SERVO_INTERVAL_MS 20 // Time in ms between angle updates for smooth movement
 
 
@@ -61,6 +61,11 @@
 #define RIGHT_DIR_PIN 5
 
 
+// =========================
+// LED CONFIG
+#define RED_PIN 2
+#define GREEN_PIN 9
+#define BLUE_PIN 8
 
 
 #endif

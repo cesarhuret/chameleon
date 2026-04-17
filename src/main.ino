@@ -16,6 +16,7 @@ SerialLogger logger(LogLevel::Debug, BAUD_RATE);
 PixySensor pixySensor;
 UltraSonicSensor bottomUltrasoundSensor;
 UltraSonicSensor topUltrasoundSensor;
+LED led;
 // BluetoothLogger logger(Serial, LogLevel::Debug, BAUD_RATE); // uses 0 and 1
 extern unsigned int __heap_start;
 extern void *__brkval;
@@ -69,6 +70,13 @@ void halt()
     while (true)
     {
         logger.log(LogLevel::Error, Codes::HALT, 0);
-        delay(5000); // Log the error message every 5 seconds
+        
+        led.write(true, false, false); // Indicate halt state with red LED
+
+        delay(200);
+
+        led.write(false, false, false); // Turn off LED
+        
+        delay(200); 
     }
 }
