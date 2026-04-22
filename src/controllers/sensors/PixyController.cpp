@@ -89,7 +89,7 @@ PixyResult PixyController::findBall()
         this->currentTargetBallIndex = result.block.index; // Store the index of the current target ball
     }
 
-    return result; 
+    return result;
 }
 
 PixyResult PixyController::findBase()
@@ -101,7 +101,7 @@ PixyResult PixyController::findBase()
     }
 
     PixyResult result = _findTarget(BASE_SIG_1); // Look for the first signature in the base parameters
-    
+
     if (result.status == SUCCESS)
     {
         this->currentTargetBaseIndex = result.block.index; // Store the index of the current target base
@@ -136,23 +136,30 @@ uint8_t PixyController::updateHiddenBlocks()
             }
         }
 
-        // if it disappeared and was near the bottom, record it
-        if (!stillVisible && m_prevBlocks[i].y > 170)
+        if (m_prevBlocks[i].y > 170 && m_prevBlocks[i].signature != currentBallSig)
         {
-            if (!stillVisible && m_prevBlocks[i].y > 170 && m_prevBlocks[i].signature != currentBallSig)
-            {
-                m_lostBlocks[m_lostCount % 4] = m_prevBlocks[i];
-                m_lostBlocks[m_lostCount % 4].age = 0; // repurpose index to store order of lost blocks
-                m_lostCount++;
-                if (m_lostCount > 4)
-                    m_lostCount = 4;
-            }
+            m_lostBlocks[m_lostCount % 4] = m_prevBlocks[i];
+            m_lostBlocks[m_lostCount % 4].age = 0; // repurpose index to store order of lost blocks
+            m_lostCount++;
+            if (m_lostCount > 4)
+                m_lostCount = 4;
         }
     }
+
+    int16_t centerX = PIXY_CAM_WIDTH / 2;
+    uint16_t dxThreshold = THRESHOLD_X + 50; // Add some buffer to the threshold for hidden block detection
 
     for (uint8_t i = 0; i < m_lostCount; i++)
     {
         m_lostBlocks[i].age++;
+
+        auto dx = (int16_t)m_lostBlocks[i].x - centerX;
+        
+        if (dx <= dxThreshold && dx >= -dxThreshold)
+        {
+            this->hiddenBallInFront = true;
+            return true;
+        }
 
         // Expire old entries — ball probably rolled away after 30 frames
         if (m_lostBlocks[i].age > 30)
@@ -189,6 +196,10 @@ PixyResult PixyController::getBase() const
     return pixy->getBlock(currentTargetBaseIndex);
 }
 
+bool PixyController::isThereAHiddenBlock() const {
+    return hiddenBallInFront;
+}
+
 uint8_t PixyController::resetBall()
 {
     this->currentTargetBallIndex = -1; // Reset to an invalid index
@@ -200,6 +211,13 @@ uint8_t PixyController::resetBase()
     this->currentTargetBaseIndex = -1; // Reset to an invalid index
     return SUCCESS;                    // Return success
 }
+
+uint8_t PixyController::resetIsThereAHiddenBlock()
+{
+    this->m_lostCount = 0;
+    this->hiddenBallInFront = false;
+    return SUCCESS; // Return success
+}   
 
 uint8_t PixyController::incrementBallSig()
 {

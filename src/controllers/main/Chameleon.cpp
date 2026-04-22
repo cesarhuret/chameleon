@@ -67,15 +67,25 @@ uint8_t Chameleon::run()
     Types::PixyResult baseResult = pixyController.findBase();
     Types::DetectedBlock target = result.block;
 
-    Types::UltraSonicResult topUltrasonicResult = topUltrasoundController.readDistanceCm();
+    pixyController.updateHiddenBlocks();
+
+    uint16_t topUltrasonicDistance = topUltrasoundController.readDistanceCm().distanceCm;
 
     if (target.signature != 0)
     {
         lastValidTarget = target;
     }
 
-    logger->log(LogLevel::Debug, baseResult.block.angle, 6);
+    if (topUltrasonicDistance <= 8 && currentState != State::RELEASE_CLAW)
+    {
+        motorController.stop();
+        motorController.move(false, 60);
+        delay(500);
 
+        motorController.stop();
+
+        // Handle ultrasonic sensor error if needed
+    }
 
     // if (currentState != State::OBSTACLE && currentState != State::MOVING_TO_BASE && topUltrasoundController.isThereObjectWithin(8).isWithinThreshold)
     // {
@@ -110,11 +120,17 @@ uint8_t Chameleon::run()
     //     currentState = State::CENTERING_TARGET;
     // }
 
+    Types::PixyArrayResult hiddenBlocksResult = pixyController.getHiddenBlocks();
+    // for (uint8_t i = 0; i < 4; i++)
+    // {
+    //     logger->log(LogLevel::Debug, packBlock(hiddenBlocksResult.blocks[i]), 3);
+    // }
+
     logger->log(LogLevel::Debug, currentState, 2);
     logger->log(LogLevel::Debug, packBlock(baseResult.block), 3);
     logger->log(LogLevel::Debug, packBlock(target), 3);
     // logger->log(LogLevel::Debug, bottomUltrasoundController.readDistanceCm().distanceCm, 0);
-    logger->log(LogLevel::Debug, topUltrasonicResult.distanceCm, 0);
+    logger->log(LogLevel::Debug, topUltrasonicDistance, 0);
 
     switch (currentState)
     {
@@ -138,10 +154,15 @@ uint8_t Chameleon::run()
         if (target.signature != 0)
         {
             led.write(target.signature == 1, target.signature == 2, target.signature == 3);
-            logger->log(LogLevel::Debug, packBlock(target), 3);
+            // logger->log(LogLevel::Debug, packBlock(target), 3);
             motorController.stop();
             previousState = currentState;
             currentState = State::CENTERING_TARGET;
+        }
+
+        if (servoController.isOpen())
+        {
+            servoController.close();
         }
 
         break;
@@ -163,7 +184,24 @@ uint8_t Chameleon::run()
 
         if (target.signature != 0 && target.y > 170)
         {
-            servoController.open();
+            if (!pixyController.isThereAHiddenBlock())
+            {
+                servoController.open();
+            }
+            else
+            {
+                servoController.close();
+                delay(1000);
+                motorController.stop();
+                motorController.move(false, 150);
+                delay(1000);
+                motorController.stop();
+                pixyController.resetIsThereAHiddenBlock();
+                pixyController.resetBall();
+                previousState = currentState;
+                currentState = State::SEARCHING_FOR_BALL;
+                break;
+            }
         }
 
         if (target.signature == 0 && lastValidTarget.y > 170)
@@ -197,13 +235,13 @@ uint8_t Chameleon::run()
             // Control motors to adjust position based on target.x and target.y
             if (dx > THRESHOLD_X)
             {
-                logger->log(LogLevel::Debug, dx, 0);
+                // logger->log(LogLevel::Debug, dx, 0);
                 // target is to the right, rotate right
                 motorController.rotate(true, ROTATE_SPEED); // Example parameters, adjust as needed
             }
             else if (dx < -THRESHOLD_X)
             {
-                logger->log(LogLevel::Debug, dx, 0);
+                // logger->log(LogLevel::Debug, dx, 0);
                 // target is to the left, rotate left
                 motorController.rotate(false, ROTATE_SPEED); // Example parameters, adjust as needed
             }
@@ -220,7 +258,7 @@ uint8_t Chameleon::run()
 
         servoController.close();
 
-        delay(2000); // Wait for the claw to close, adjust as needed
+        delay(1000); // Wait for the claw to close, adjust as needed
 
         previousState = currentState;
         currentState = State::FIND_BASE; // Find the base by rotating
@@ -249,8 +287,6 @@ uint8_t Chameleon::run()
             led.write(true, false, true);
         }
 
-        logger->log(LogLevel::Debug, packBlock(baseResult.block), 3);
-
         // so if we have a target base
         // we're rotating left until we find a base and is centered
         if (pixyController.isCentered(baseResult.block))
@@ -272,13 +308,12 @@ uint8_t Chameleon::run()
         // PixyCam can detect lines, so we can use it to follow a line back to the base
         // We would first have to rotate to find the line though
 
-        // if (pixyController.isCentered(baseResult.block))
-        // {
-        //     // logger->info("TARGET CENTERED -> MOVE TO BALL");
-        //     motorController.stop();
-        //     motorController.move(true, 120);
-        // }
-        
+        if (pixyController.isCentered(baseResult.block))
+        {
+            // logger->info("TARGET CENTERED -> MOVE TO BALL");
+            motorController.stop();
+            motorController.move(true, 120);
+        }
 
         if (topUltrasoundController.isThereObjectWithin(20).isWithinThreshold) // if at base position
         {
@@ -288,35 +323,35 @@ uint8_t Chameleon::run()
             break;
         }
 
-        if (!motorController.isMoving())
-        {
-            // Control motors to move towards the base
-            motorController.move(true, 200); // Example parameters, adjust as needed
-        }
+        // if (!motorController.isMoving())
+        // {
+        //     // Control motors to move towards the base
+        //     motorController.move(true, 200); // Example parameters, adjust as needed
+        // }
 
         // If we are not rotating, start rotating to center the target in the camera's view
-        // if (baseResult.block.signature != 0 && !motorController.isRotating())
-        // {
-        //     // logger->info("STARTING ROTATION...");
+        if (baseResult.block.signature != 0 && !motorController.isRotating())
+        {
+            // logger->info("STARTING ROTATION...");
 
-        //     int16_t centerX = PIXY_CAM_WIDTH / 2;
+            int16_t centerX = PIXY_CAM_WIDTH / 2;
 
-        //     int16_t dx = (int16_t)baseResult.block.x - centerX;
+            int16_t dx = (int16_t)baseResult.block.x - centerX;
 
-        //     // Control motors to adjust position based on target.x and target.y
-        //     if (dx > THRESHOLD_X)
-        //     {
-        //         logger->log(LogLevel::Debug, dx, 0);
-        //         // target is to the right, rotate right
-        //         motorController.rotate(true, 50); // Example parameters, adjust as needed
-        //     }
-        //     else if (dx < -THRESHOLD_X)
-        //     {
-        //         logger->log(LogLevel::Debug, dx, 0);
-        //         // target is to the left, rotate left
-        //         motorController.rotate(false, 50); // Example parameters, adjust as needed
-        //     }
-        // }
+            // Control motors to adjust position based on target.x and target.y
+            if (dx > THRESHOLD_X)
+            {
+                logger->log(LogLevel::Debug, dx, 0);
+                // target is to the right, rotate right
+                motorController.rotate(true, 50); // Example parameters, adjust as needed
+            }
+            else if (dx < -THRESHOLD_X)
+            {
+                logger->log(LogLevel::Debug, dx, 0);
+                // target is to the left, rotate left
+                motorController.rotate(false, 50); // Example parameters, adjust as needed
+            }
+        }
 
         break;
     }
@@ -332,8 +367,9 @@ uint8_t Chameleon::run()
             servoController.open();
         }
 
-        if(topUltrasoundController.isThereObjectWithin(4).isWithinThreshold) {
-            motorController.stop(); // we're headed to the base as we open the claw, so when claw is open stop
+        if (topUltrasoundController.isThereObjectWithin(4).isWithinThreshold)
+        {
+            motorController.stop();          // we're headed to the base as we open the claw, so when claw is open stop
             currentState = State::MOVE_BACK; // Rotate to center to prepare for next search
         }
 
@@ -350,9 +386,12 @@ uint8_t Chameleon::run()
 
         // reset current ball, base, increment sig
         pixyController.resetBall();
+        pixyController.resetIsThereAHiddenBlock();
         pixyController.incrementBallSig();
 
         delay(1000); // Small delay to ensure we have moved back from the base before any further actions, adjust as needed
+
+        servoController.close(); // close claw to be ready for next grab
 
         previousState = currentState;
         currentState = State::ROTATE_TO_CENTER; // Rotate to center to prepare for next search
@@ -402,8 +441,8 @@ uint8_t Chameleon::run()
         {
             // If the obstacle is removed, go back to the previous state
 
-            logger->log(LogLevel::Debug, topUltrasoundController.isThereObjectWithin(8).isWithinThreshold, 4);
-            logger->log(LogLevel::Debug, previousState, 2);
+            // logger->log(LogLevel::Debug, topUltrasoundController.isThereObjectWithin(8).isWithinThreshold, 4);
+            // logger->log(LogLevel::Debug, previousState, 2);
 
             currentState = previousState;
         }

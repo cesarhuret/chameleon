@@ -54,8 +54,6 @@ void setup()
 void loop()
 {
 
-    logger.log(LogLevel::Info, freeMemory(), 0);
-
     uint8_t status = chameleon.run();
     if (status != Codes::SUCCESS)
     {

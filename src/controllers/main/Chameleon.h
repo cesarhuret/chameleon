@@ -18,7 +18,6 @@ private:
     State currentState;
     State previousState;
     DetectedBlock lastValidTarget;
-    bool obstacleInFront = false;
 
     ILogger *logger;
     PixyController pixyController;
