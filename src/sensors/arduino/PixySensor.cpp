@@ -39,6 +39,9 @@ uint8_t PixySensor::updateBlocks()
         m_blocks[i].angle = pixyBlock.m_angle;
     }
 
+    Serial.print("Angle: ");
+    Serial.println(m_blocks[0].angle);
+
     return status;
 }
 

@@ -54,14 +54,14 @@ void MotorController::move(bool _direction, uint8_t _speed)
     { // forward
         digitalWrite(RIGHT_DIR_PIN, HIGH);
         digitalWrite(LEFT_DIR_PIN, HIGH);
-        analogWrite(RIGHT_PWM_PIN, _speed + 8);
+        analogWrite(RIGHT_PWM_PIN, _speed);
         analogWrite(LEFT_PWM_PIN, _speed);
     }
     else
     { // backward
         digitalWrite(RIGHT_DIR_PIN, LOW);
         digitalWrite(LEFT_DIR_PIN, LOW);
-        analogWrite(RIGHT_PWM_PIN, _speed + 15);
+        analogWrite(RIGHT_PWM_PIN, _speed);
         analogWrite(LEFT_PWM_PIN, _speed);
     }
 

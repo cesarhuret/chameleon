@@ -56,7 +56,6 @@ PixyResult PixyController::_findTarget(uint8_t targetSig)
     }
     else
     {
-        this->currentTargetBallIndex = bestBlock.index; // Store the index of the current target ball
         return PixyResult{SUCCESS, bestBlock};
     }
 }
@@ -83,7 +82,14 @@ bool PixyController::_isTarget(DetectedBlock block, uint8_t targetSig)
 
 PixyResult PixyController::findBall()
 {
-    return _findTarget(currentBallSig);
+    PixyResult result = _findTarget(currentBallSig);
+
+    if (result.status == SUCCESS)
+    {
+        this->currentTargetBallIndex = result.block.index; // Store the index of the current target ball
+    }
+
+    return result; 
 }
 
 PixyResult PixyController::findBase()
@@ -94,7 +100,14 @@ PixyResult PixyController::findBase()
         return getBase();
     }
 
-    return _findTarget(BASE_SIG_1); // Look for the first signature in the base parameters
+    PixyResult result = _findTarget(BASE_SIG_1); // Look for the first signature in the base parameters
+    
+    if (result.status == SUCCESS)
+    {
+        this->currentTargetBaseIndex = result.block.index; // Store the index of the current target base
+    }
+
+    return result;
 }
 
 uint8_t PixyController::updateBlocks()

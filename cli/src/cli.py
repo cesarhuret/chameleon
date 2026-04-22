@@ -60,10 +60,11 @@ STATES = {
     2: "MOVING_TO_BALL",
     3: "GRAB_CLAW",
     4: "RELEASE_CLAW",
-    5: "FIND_BASE",
-    6: "ROTATE_TO_CENTER",
-    7: "MOVING_TO_BASE",
-    8: "OBSTACLE"
+    5: "MOVE_BACK",
+    6: "FIND_BASE",
+    7: "ROTATE_TO_CENTER",
+    8: "MOVING_TO_BASE",
+    9: "OBSTACLE"
 }
 
 # ----------------------------

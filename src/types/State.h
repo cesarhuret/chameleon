@@ -10,6 +10,7 @@ namespace Types
         MOVING_TO_BALL,
         GRAB_CLAW,
         RELEASE_CLAW,
+        MOVE_BACK,
         FIND_BASE,
         ROTATE_TO_CENTER,
         MOVING_TO_BASE,

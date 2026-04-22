@@ -19,7 +19,7 @@
 #define MIN_BASE_WIDTH 20
 #define MAX_BASE_WIDTH 300
 
-#define BASE_SIG_1 4
+#define BASE_SIG_1 7
 #define BASE_SIG_2 5
 #define BASE_SIG_3 6
 
@@ -59,6 +59,8 @@
 #define LEFT_DIR_PIN 4
 #define RIGHT_PWM_PIN 6
 #define RIGHT_DIR_PIN 5
+
+#define ROTATE_SPEED 30
 
 
 // =========================
