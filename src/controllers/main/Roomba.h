@@ -1,5 +1,5 @@
-#ifndef CHAMELEON_H
-#define CHAMELEON_H
+#ifndef ROOMBA_H
+#define ROOMBA_H
 
 #include "helpers/interfaces/ILogger.h"
 #include "sensors/interfaces/IPixySensor.h"
@@ -11,7 +11,7 @@
 #include "controllers/actuators/ServoController.h"
 #include "types/State.h"
 
-class Chameleon
+class Roomba
 {
 
 private:

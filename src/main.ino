@@ -1,4 +1,4 @@
-#include "controllers/main/Chameleon.h"
+#include "controllers/main/Roomba.h"
 #include "SPI.h"
 
 #include "sensors/arduino/PixySensor.h"
@@ -11,7 +11,7 @@
 
 constexpr unsigned long BAUD_RATE = 115200UL;
 
-Chameleon chameleon;
+Roomba roomba;
 SerialLogger logger(LogLevel::Debug, BAUD_RATE);
 PixySensor pixySensor;
 UltraSonicSensor bottomUltrasoundSensor;
@@ -40,7 +40,7 @@ void setup()
 
     Serial.println(freeMemory());
 
-    uint8_t status = chameleon.init(&logger, config);
+    uint8_t status = roomba.init(&logger, config);
     if (status != Codes::SUCCESS)
     {
         logger.log(LogLevel::Error, status, 0);
@@ -55,7 +55,7 @@ void setup()
 void loop()
 {
 
-    uint8_t status = chameleon.run();
+    uint8_t status = roomba.run();
     if (status == 55)
     {
         blink(led, true, true, false, 500); // Blink yellow if we fail to find the base for a long time, which might indicate an obstacle

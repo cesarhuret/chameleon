@@ -1,9 +1,9 @@
 #include <Arduino.h>
 
-#include "Chameleon.h"
+#include "Roomba.h"
 #include "types/Config.h"
 
-uint8_t Chameleon::init(ILogger *logger, RuntimeConfig config)
+uint8_t Roomba::init(ILogger *logger, RuntimeConfig config)
 {
     this->logger = logger;
     this->currentState = State::SEARCHING_FOR_BALL;
@@ -58,7 +58,7 @@ uint8_t Chameleon::init(ILogger *logger, RuntimeConfig config)
     return Codes::SUCCESS; // Return success if all initializations are successful
 }
 
-uint8_t Chameleon::run()
+uint8_t Roomba::run()
 {
     pixyController.updateBlocks();
 
