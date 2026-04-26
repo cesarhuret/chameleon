@@ -19,12 +19,15 @@
 #define MIN_BASE_WIDTH 20
 #define MAX_BASE_WIDTH 300
 
-#define BASE_SIG_1 7 // orange
+#define BASE_SIG_1 4 // pink
 #define BASE_SIG_2 5 // purple
-#define BASE_SIG_3 6 // yellow
+#define BASE_SIG_3 7 // orange
 
 #define THRESHOLD_X 22
 #define THRESHOLD_Y 20
+
+#define PIXY_CAM_WIDTH 316
+#define PIXY_CAM_HEIGHT 208
 
 
 // =========================
@@ -60,7 +63,7 @@
 #define RIGHT_PWM_PIN 6
 #define RIGHT_DIR_PIN 5
 
-#define ROTATE_SPEED 40
+#define ROTATE_SPEED 43
 
 
 // =========================

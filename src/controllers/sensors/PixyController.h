@@ -20,10 +20,6 @@ private:
     uint8_t currentBallSig;
     int16_t currentTargetBallIndex;
     int16_t currentTargetBaseIndex;
-    uint8_t m_prevCount;
-    Types::DetectedBlock m_prevBlocks[4];
-    uint8_t m_lostCount;
-    Types::DetectedBlock m_lostBlocks[4];
     bool hiddenBallInFront = false;
 
     bool _isTarget(DetectedBlock block, uint8_t targetSig);
@@ -47,6 +43,8 @@ public:
     PixyResult getBall() const;
 
     PixyResult getBase() const;
+    
+    PixyArrayResult getBlocks() const;
 
     uint8_t updateBlocks();
 
@@ -56,7 +54,7 @@ public:
 
     bool isThereAHiddenBlock() const;
 
-    bool isCentered(DetectedBlock block) const;
+    bool isCentered(DetectedBlock block, uint8_t threshold) const;
 
     uint8_t resetBall();
 

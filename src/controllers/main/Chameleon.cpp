@@ -1,7 +1,6 @@
 #include <Arduino.h>
 
 #include "Chameleon.h"
-#include "constants/Pixy.h"
 #include "types/Config.h"
 
 uint8_t Chameleon::init(ILogger *logger, RuntimeConfig config)
@@ -64,7 +63,6 @@ uint8_t Chameleon::run()
     pixyController.updateBlocks();
 
     Types::PixyResult result = pixyController.getBall();
-    Types::PixyResult baseResult = pixyController.findBase();
     Types::DetectedBlock target = result.block;
 
     pixyController.updateHiddenBlocks();
@@ -76,58 +74,28 @@ uint8_t Chameleon::run()
         lastValidTarget = target;
     }
 
-    if (topUltrasonicDistance <= 8 && currentState != State::RELEASE_CLAW)
+    // obstcle
+    if (topUltrasonicDistance <= 12 && currentState != State::RELEASE_CLAW)
     {
         motorController.stop();
         motorController.move(false, 60);
         delay(500);
 
         motorController.stop();
-
-        // Handle ultrasonic sensor error if needed
+        if (currentState == State::CENTERING_TARGET || currentState == State::SEARCHING_FOR_BALL)
+        {
+            currentState = State::ROTATE_TO_CENTER;
+        }
     }
 
-    // if (currentState != State::OBSTACLE && currentState != State::MOVING_TO_BASE && topUltrasoundController.isThereObjectWithin(8).isWithinThreshold)
-    // {
-    //     motorController.stop();
-    //     previousState = currentState;
-    //     currentState = State::OBSTACLE;
-    // }
-
-    // if ((currentState == State::SEARCHING_FOR_BALL || currentState == State::OBSTACLE) && baseResult.block.signature != 0)
-    // {
-    //     previousState = currentState;
-    //     currentState = State::ROTATE_TO_CENTER;
-    // }
-
-    // ============================================
-    // Edge Case #3:
-    // An obstacle is placed in front of us at any point
-    // We must go around it.
-    // else if (currentState != State::MOVING_TO_BASE && currentState != State::OBSTACLE && currentState != State::RELEASE_CLAW && currentState != State::ROTATE_TO_CENTER && topUltrasoundController.isThereObjectWithin(8).isWithinThreshold)
-    // {
-    //     motorController.stop();
-    //     previousState = currentState;
-    //     currentState = State::OBSTACLE;
-    // }
-
-    // // if ball shifts but stays on pixy fov, recenter to ball
-    // if (currentState != State::GRAB_CLAW && currentState != State::MOVE_TO_BARRIER && currentState != State::MOVE_BACK_TO_BASE && currentState > State::CENTERING_TARGET && !pixyController.isCentered(target))
-    // {
-    //     // If we are past the centering state and our target is no longer centered, we should probably go back to centering the target
-    //     motorController.stop();
-    //     previousState = currentState;
-    //     currentState = State::CENTERING_TARGET;
-    // }
-
-    Types::PixyArrayResult hiddenBlocksResult = pixyController.getHiddenBlocks();
-    // for (uint8_t i = 0; i < 4; i++)
-    // {
-    //     logger->log(LogLevel::Debug, packBlock(hiddenBlocksResult.blocks[i]), 3);
-    // }
+    // Types::PixyArrayResult hiddenBlocksResult = pixyController.getHiddenBlocks();
+    // // for (uint8_t i = 0; i < 4; i++)
+    // // {
+    // //     logger->log(LogLevel::Debug, packBlock(hiddenBlocksResult.blocks[i]), 3);
+    // // }
 
     logger->log(LogLevel::Debug, currentState, 2);
-    logger->log(LogLevel::Debug, packBlock(baseResult.block), 3);
+    logger->log(LogLevel::Debug, packBlock(pixyController.findBase().block), 3);
     logger->log(LogLevel::Debug, packBlock(target), 3);
     // logger->log(LogLevel::Debug, bottomUltrasoundController.readDistanceCm().distanceCm, 0);
     logger->log(LogLevel::Debug, topUltrasonicDistance, 0);
@@ -156,7 +124,6 @@ uint8_t Chameleon::run()
             led.write(target.signature == 1, target.signature == 2, target.signature == 3);
             // logger->log(LogLevel::Debug, packBlock(target), 3);
             motorController.stop();
-            previousState = currentState;
             currentState = State::CENTERING_TARGET;
         }
 
@@ -175,7 +142,7 @@ uint8_t Chameleon::run()
         // ============================================
 
         // If the target is centered, transition to moving towards the ball
-        if (pixyController.isCentered(target))
+        if (pixyController.isCentered(target, THRESHOLD_X))
         {
             // logger->info("TARGET CENTERED -> MOVE TO BALL");
             motorController.stop();
@@ -184,6 +151,8 @@ uint8_t Chameleon::run()
 
         if (target.signature != 0 && target.y > 170)
         {
+            Serial.print("IS HB: ");
+            Serial.println(pixyController.isThereAHiddenBlock());
             if (!pixyController.isThereAHiddenBlock())
             {
                 servoController.open();
@@ -198,7 +167,6 @@ uint8_t Chameleon::run()
                 motorController.stop();
                 pixyController.resetIsThereAHiddenBlock();
                 pixyController.resetBall();
-                previousState = currentState;
                 currentState = State::SEARCHING_FOR_BALL;
                 break;
             }
@@ -211,14 +179,12 @@ uint8_t Chameleon::run()
         else if (target.signature == 0)
         {
             motorController.stop();
-            previousState = currentState;
-            currentState = State::SEARCHING_FOR_BALL;
+            currentState = State::ROTATE_TO_CENTER;
         }
 
         if (bottomUltrasoundController.readDistanceCm().distanceCm >= 8)
         {
             motorController.stop();
-            previousState = currentState;
             currentState = State::GRAB_CLAW;
             break;
         }
@@ -260,7 +226,6 @@ uint8_t Chameleon::run()
 
         delay(1000); // Wait for the claw to close, adjust as needed
 
-        previousState = currentState;
         currentState = State::FIND_BASE; // Find the base by rotating
 
         break;
@@ -272,10 +237,11 @@ uint8_t Chameleon::run()
         // Find Base by rotating and using the PixyCam
         // ============================================
 
-        if (baseResult.block.signature == 0)
-        {
+        DetectedBlock baseResult = pixyController.findBase().block;
 
-            led.write(true, true, false);
+        if (baseResult.signature == 0)
+        {
+            led.write(true, true, false); // yellow
             // We don't have a target base, and out of all visible blocks it's not in there either
             // So start rotating to find the base
             motorController.rotate(true, ROTATE_SPEED); // rotate left
@@ -284,13 +250,9 @@ uint8_t Chameleon::run()
         }
         else
         {
-            led.write(true, false, true);
-        }
-
-        // so if we have a target base
-        // we're rotating left until we find a base and is centered
-        if (pixyController.isCentered(baseResult.block))
-        {
+            // so if we have a target base
+            // we're rotating left until we find a base and is centered
+            led.write(false, true, false); // green
             motorController.stop();
             currentState = State::MOVING_TO_BASE;
             break;
@@ -308,17 +270,25 @@ uint8_t Chameleon::run()
         // PixyCam can detect lines, so we can use it to follow a line back to the base
         // We would first have to rotate to find the line though
 
-        if (pixyController.isCentered(baseResult.block))
+        DetectedBlock baseResult = pixyController.findBase().block;
+
+        if (baseResult.signature == 0)
+        {
+            currentState = State::FIND_BASE;
+            break;
+        }
+
+        if (pixyController.isCentered(baseResult, THRESHOLD_X))
         {
             // logger->info("TARGET CENTERED -> MOVE TO BALL");
             motorController.stop();
             motorController.move(true, 120);
         }
 
-        if (topUltrasoundController.isThereObjectWithin(20).isWithinThreshold) // if at base position
+        if (topUltrasoundController.isThereObjectWithin(25).isWithinThreshold) // if at base position
         {
-            led.write(true, false, false);
-            previousState = currentState;
+            led.write(true, true, true);
+            motorController.move(true, 200);
             currentState = State::RELEASE_CLAW;
             break;
         }
@@ -330,26 +300,26 @@ uint8_t Chameleon::run()
         // }
 
         // If we are not rotating, start rotating to center the target in the camera's view
-        if (baseResult.block.signature != 0 && !motorController.isRotating())
+        if (baseResult.signature != 0 && !motorController.isRotating())
         {
             // logger->info("STARTING ROTATION...");
 
             int16_t centerX = PIXY_CAM_WIDTH / 2;
 
-            int16_t dx = (int16_t)baseResult.block.x - centerX;
+            int16_t dx = (int16_t)baseResult.x - centerX;
 
             // Control motors to adjust position based on target.x and target.y
             if (dx > THRESHOLD_X)
             {
                 logger->log(LogLevel::Debug, dx, 0);
                 // target is to the right, rotate right
-                motorController.rotate(true, 50); // Example parameters, adjust as needed
+                motorController.rotate(true, ROTATE_SPEED); // Example parameters, adjust as needed
             }
             else if (dx < -THRESHOLD_X)
             {
                 logger->log(LogLevel::Debug, dx, 0);
                 // target is to the left, rotate left
-                motorController.rotate(false, 50); // Example parameters, adjust as needed
+                motorController.rotate(false, ROTATE_SPEED); // Example parameters, adjust as needed
             }
         }
 
@@ -369,6 +339,7 @@ uint8_t Chameleon::run()
 
         if (topUltrasoundController.isThereObjectWithin(4).isWithinThreshold)
         {
+            delay(200);
             motorController.stop();          // we're headed to the base as we open the claw, so when claw is open stop
             currentState = State::MOVE_BACK; // Rotate to center to prepare for next search
         }
@@ -393,7 +364,6 @@ uint8_t Chameleon::run()
 
         servoController.close(); // close claw to be ready for next grab
 
-        previousState = currentState;
         currentState = State::ROTATE_TO_CENTER; // Rotate to center to prepare for next search
 
         break;
@@ -407,44 +377,28 @@ uint8_t Chameleon::run()
 
         // We can just rotate in place until we find a ball again, which will be our next target
         PixyResult result = pixyController.findBall();
-        PixyResult baseResult = pixyController.getBase();
+        PixyResult baseResult = pixyController.findBase();
 
         // if the base is in the view, or if there is no ball, rotate
-        if (baseResult.block.signature != 0 || result.block.signature == 0)
+        if (baseResult.block.signature != 0 || result.block.signature == 0 || topUltrasonicDistance <= 25)
         {
             // We don't have a target ball, and out of all visible blocks it's not in there either
             // So start rotating to find the ball
             // logger->log(LogLevel::Debug, Codes::ROTATING_TO_FIND_BALL, 0);
 
+            led.write(true, false, true); // purple
+
             motorController.rotate(true, ROTATE_SPEED); // rotate left
             break;
         }
 
-        if (pixyController.isCentered(result.block) && topUltrasoundController.readDistanceCm().distanceCm >= 75)
+        if (pixyController.isCentered(result.block, THRESHOLD_X) && topUltrasonicDistance >= 60)
         {
+            // WE HAVE FOUND THE NEW TARGET - THIS BASICALLY GOES STRAIGHT TO CENTER_TARGET
             pixyController.resetBase();
             motorController.stop();
-            previousState = currentState;
-            currentState = State::SEARCHING_FOR_BALL; // Start searching for the next ball
-        }
-
-        break;
-    }
-
-    case State::OBSTACLE:
-    {
-        // ============================================
-        // Obstacle Avoidance
-        // ============================================
-
-        if (!topUltrasoundController.isThereObjectWithin(8).isWithinThreshold)
-        {
-            // If the obstacle is removed, go back to the previous state
-
-            // logger->log(LogLevel::Debug, topUltrasoundController.isThereObjectWithin(8).isWithinThreshold, 4);
-            // logger->log(LogLevel::Debug, previousState, 2);
-
-            currentState = previousState;
+            motorController.rotate(true, ROTATE_SPEED);
+            currentState = State::SEARCHING_FOR_BALL;
         }
 
         break;
