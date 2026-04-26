@@ -19,12 +19,15 @@
 #define MIN_BASE_WIDTH 20
 #define MAX_BASE_WIDTH 300
 
-#define BASE_SIG_1 4
-#define BASE_SIG_2 5
-#define BASE_SIG_3 6
+#define BASE_SIG_1 4 // pink
+#define BASE_SIG_2 5 // purple
+#define BASE_SIG_3 7 // orange
 
 #define THRESHOLD_X 22
 #define THRESHOLD_Y 20
+
+#define PIXY_CAM_WIDTH 316
+#define PIXY_CAM_HEIGHT 208
 
 
 // =========================
@@ -32,7 +35,7 @@
 // =========================
 #define SERVO_PIN 7
 #define SERVO_INTERVAL_MS 20
-#define OPEN_ANGLE 90
+#define OPEN_ANGLE 110
 #define CLOSED_ANGLE 140
 #define SERVO_INTERVAL_MS 20 // Time in ms between angle updates for smooth movement
 
@@ -59,6 +62,8 @@
 #define LEFT_DIR_PIN 4
 #define RIGHT_PWM_PIN 6
 #define RIGHT_DIR_PIN 5
+
+#define ROTATE_SPEED 43
 
 
 // =========================

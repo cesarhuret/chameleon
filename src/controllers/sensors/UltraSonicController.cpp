@@ -33,22 +33,20 @@ UltraSonicResult UltraSonicController::readDistanceCm()
 
     // Convert microseconds to centimeters
     // distance_cm = duration / 58
-    return {SUCCESS, static_cast<uint16_t>((duration * .0343) / 2)};
+
+    lastDistanceCm = static_cast<uint16_t>((duration * .0343) / 2); // Speed of sound is ~343 m/s, so 0.0343 cm/µs, and we divide by 2 for the round trip
+
+    return {SUCCESS, lastDistanceCm};
 }
 
 UltraSonicWithinResult UltraSonicController::isThereObjectWithin(uint16_t thresholdCm)
 {
-    UltraSonicResult result = readDistanceCm();
-    if (result.status != SUCCESS)
-    {
-        return {result.status, false}; // Return error status
-    }
 
-    if (result.distanceCm == 0)
+    if (lastDistanceCm == 0)
     {
         return {ULTRASONIC_OUT_OF_RANGE, false}; // No object detected
     }
 
 
-    return {SUCCESS, result.distanceCm <= thresholdCm}; // Return whether object is within threshold
+    return {SUCCESS, lastDistanceCm <= thresholdCm}; // Return whether object is within threshold
 }

@@ -1,3 +1,4 @@
+import os
 import serial
 import time
 import struct
@@ -60,10 +61,16 @@ STATES = {
     2: "MOVING_TO_BALL",
     3: "GRAB_CLAW",
     4: "RELEASE_CLAW",
-    5: "FIND_BASE",
-    6: "ROTATE_TO_CENTER",
-    7: "MOVING_TO_BASE",
-    8: "OBSTACLE"
+    5: "MOVE_BACK",
+    6: "FIND_BASE",
+    7: "ROTATE_TO_CENTER",
+    8: "MOVING_TO_BASE",
+    9: "OBSTACLE"
+}
+SIGNATURES = {
+    1:"RED",
+    2:"GREEN",
+    3:"BLUE",
 }
 
 # ----------------------------
@@ -126,8 +133,9 @@ def decode_payload(packet_type: int, payload: bytes) -> str:
 
     if packet_type == 3 and len(payload) == 10:  # PackedBlock
         x, y, w, h, sig, age = struct.unpack("<HHHHBB", payload)
-        return f"x={x} y={y} w={w} h={h} sig={sig} age={age}"
-    
+        signature_name = SIGNATURES.get(sig, f"SIG{sig}")
+        return f"x={x} y={y} w={w} h={h} sig={signature_name} age={age}"
+
     if packet_type == 2 and len(payload) == 1:  # State code
         state = payload[0]
         return STATES.get(state, f"S{state}")

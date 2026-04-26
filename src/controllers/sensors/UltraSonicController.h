@@ -15,6 +15,7 @@ class UltraSonicController
 
 private:
     IUltraSonicSensor *ultraSonic = nullptr;
+    uint16_t lastDistanceCm = 0;
 
 public:
 
